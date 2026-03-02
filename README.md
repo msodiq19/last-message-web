@@ -37,4 +37,4 @@ NEXT_PUBLIC_BASE_URL | The production URL. |
 We rely on your check-ins, not email delivery. Email reminders are a convenience, not a guarantee. If reminders fail and you don't check in, the message will be released.
 
 ## License
-...
+MIT
