@@ -72,7 +72,7 @@ export async function sendReleaseEmail(
       text: `Someone set up a Last Message for you.
 
 Last Message is a dead man's switch. The person who wrote this message
-set it to be delivered to you if they stopped checking in for 30 days.
+set it to be delivered to you if they stopped checking in for 14 days.
 
 They have not checked in. The message has been released.
 

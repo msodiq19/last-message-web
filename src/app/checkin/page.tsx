@@ -38,7 +38,7 @@ function CheckinContent() {
         {status === "success" && (
           <div className="border border-green-300 bg-green-50 rounded-md p-4 text-sm text-green-900">
             <p className="font-semibold">Check-in confirmed.</p>
-            <p className="mt-1">Your timer has been reset. See you in 30 days (or sooner).</p>
+            <p className="mt-1">Your timer has been reset. See you in 14 days (or sooner).</p>
           </div>
         )}
 

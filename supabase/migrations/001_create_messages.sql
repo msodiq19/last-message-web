@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS messages (
   ct_hash         TEXT NOT NULL UNIQUE,
   sender_email    TEXT NOT NULL,
   last_checkin    TIMESTAMPTZ NOT NULL DEFAULT now(),
-  release_after   INTEGER NOT NULL DEFAULT 30,  -- days, not user-configurable in MVP
+  release_after   INTEGER NOT NULL DEFAULT 14,  -- days, not user-configurable in MVP
   recipient_email TEXT NOT NULL,
   status          TEXT NOT NULL DEFAULT 'active'
                   CHECK (status IN ('active', 'released')),

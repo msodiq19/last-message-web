@@ -150,7 +150,7 @@ export default function Home() {
               <ul className="list-disc list-inside space-y-1">
                 <li>Your message will be encrypted. Only the key can unlock it.</li>
                 <li>A <strong>.key file</strong> will download automatically. <strong>If you lose it, your message is permanently unrecoverable.</strong></li>
-                <li>You&apos;ll get a check-in URL. Bookmark it. Visit it at least once every 30 days.</li>
+                <li>You&apos;ll get a check-in URL. Bookmark it. Visit it at least once every 14 days.</li>
                 <li>If you stop checking in, the message is released to your recipient. <strong>No undo.</strong></li>
                 <li>Anyone with the read link and your encryption key can read the message. That responsibility is yours.</li>
               </ul>
@@ -210,7 +210,7 @@ export default function Home() {
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Visit this link at least once every 30 days to keep your message from being released.
+                Visit this link at least once every 14 days to keep your message from being released.
               </p>
             </div>
           </div>
