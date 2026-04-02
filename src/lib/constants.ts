@@ -9,3 +9,6 @@ export const REMINDER_SCHEDULE = [
 
 /** Max soft-bounce retries per reminder window */
 export const MAX_EMAIL_RETRIES = 2;
+
+/** Max encrypted_blob size in bytes (50KB — ~37KB plaintext after base64 overhead) */
+export const MAX_MESSAGE_SIZE = 50 * 1024;

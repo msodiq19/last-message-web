@@ -90,15 +90,9 @@ async function handleCron(request: NextRequest) {
 
     for (const schedule of REMINDER_SCHEDULE) {
       if (daysSinceCheckin === schedule.daysSinceCheckin) {
-        // We don't have a proper check-in URL since we only store the hash.
-        // The reminder email must contain the check-in page URL.
-        // The user bookmarks their check-in URL from creation time.
-        const checkinPageUrl = `${baseUrl}/checkin`;
-
         const { success, hardBounce } = await sendReminderEmail(
           msg.sender_email,
-          schedule.daysLeft,
-          checkinPageUrl
+          schedule.daysLeft
         );
 
         if (!success) {

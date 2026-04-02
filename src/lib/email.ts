@@ -22,8 +22,7 @@ If reminders fail and you don't check in, the message will be released.
  */
 export async function sendReminderEmail(
   to: string,
-  daysLeft: number,
-  checkinUrl: string
+  daysLeft: number
 ): Promise<{ success: boolean; hardBounce?: boolean }> {
   try {
     const { error } = await getResend().emails.send({
@@ -32,7 +31,8 @@ export async function sendReminderEmail(
       subject: `Last Message: ${daysLeft} day${daysLeft === 1 ? "" : "s"} until your message is released`,
       text: `Your message will be released in ${daysLeft} day${daysLeft === 1 ? "" : "s"} unless you check in.
 
-Check in now: ${checkinUrl}
+Use the check-in link you bookmarked when you created your message.
+If you lost it, there is no way to recover it — the link contains your unique token.
 
 ${TRUST_FOOTER}`,
     });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase";
 import { sha256 } from "@/lib/hash";
+import { MAX_MESSAGE_SIZE } from "@/lib/constants";
 import type { CreateMessageRequest } from "@/types";
 
 export async function POST(request: NextRequest) {
@@ -27,6 +28,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Invalid recipient email address" },
         { status: 400 }
+      );
+    }
+
+    // Validate message size (encrypted_blob is base64url, ~33% overhead)
+    if (body.encrypted_blob.length > MAX_MESSAGE_SIZE) {
+      return NextResponse.json(
+        { error: `Message too large. Maximum size is ${Math.floor(MAX_MESSAGE_SIZE / 1024)}KB.` },
+        { status: 413 }
       );
     }
 
