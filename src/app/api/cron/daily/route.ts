@@ -8,10 +8,11 @@ import type { Message } from "@/types";
  * Daily cron job: send reminders and release messages.
  * Protected by CRON_SECRET header.
  *
- * POST /api/cron/daily
+ * GET  /api/cron/daily — Vercel Cron (sends GET)
+ * POST /api/cron/daily — External cron services (e.g. cron-job.org)
  * Header: Authorization: Bearer <CRON_SECRET>
  */
-export async function POST(request: NextRequest) {
+async function handleCron(request: NextRequest) {
   // Verify cron secret
   const authHeader = request.headers.get("authorization");
   const expectedSecret = process.env.CRON_SECRET;
@@ -126,4 +127,14 @@ export async function POST(request: NextRequest) {
     ...results,
     timestamp: now.toISOString(),
   });
+}
+
+// Vercel Cron sends GET requests
+export async function GET(request: NextRequest) {
+  return handleCron(request);
+}
+
+// External cron services (e.g. cron-job.org) send POST requests
+export async function POST(request: NextRequest) {
+  return handleCron(request);
 }

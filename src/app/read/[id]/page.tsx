@@ -85,7 +85,7 @@ export default function ReadPage({
               <p className="font-semibold">Someone left you a message.</p>
               <p>
                 Last Message is a dead man&apos;s switch. The person who wrote this
-                set it to be delivered to you if they stopped checking in for 30
+                set it to be delivered to you if they stopped checking in for 14
                 days. They have not checked in. The message has been released.
               </p>
               <p>
