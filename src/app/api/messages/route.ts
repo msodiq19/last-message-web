@@ -31,6 +31,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Sender and recipient must be different
+    if (body.sender_email.trim().toLowerCase() === body.recipient_email.trim().toLowerCase()) {
+      return NextResponse.json(
+        { error: "Sender and recipient email addresses cannot be the same" },
+        { status: 400 }
+      );
+    }
+
     // Validate message size (encrypted_blob is base64url, ~33% overhead)
     if (body.encrypted_blob.length > MAX_MESSAGE_SIZE) {
       return NextResponse.json(
