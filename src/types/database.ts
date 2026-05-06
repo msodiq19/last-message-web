@@ -15,6 +15,8 @@ export interface Database {
           retry_count: number;
           created_at: string;
           released_at: string | null;
+          secret_question: string;
+          encrypted_fragment_a: string;
         };
         Insert: {
           id?: string;
@@ -29,6 +31,8 @@ export interface Database {
           retry_count?: number;
           created_at?: string;
           released_at?: string | null;
+          secret_question: string;
+          encrypted_fragment_a: string;
         };
         Update: {
           id?: string;
@@ -43,6 +47,32 @@ export interface Database {
           retry_count?: number;
           created_at?: string;
           released_at?: string | null;
+          secret_question?: string;
+          encrypted_fragment_a?: string;
+        };
+        Relationships: [];
+      };
+      vault_items: {
+        Row: {
+          id: string;
+          encrypted_content: string;
+          encrypted_fragment_a: string;
+          secret_question: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          encrypted_content: string;
+          encrypted_fragment_a: string;
+          secret_question: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          encrypted_content?: string;
+          encrypted_fragment_a?: string;
+          secret_question?: string;
+          created_at?: string;
         };
         Relationships: [];
       };

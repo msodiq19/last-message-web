@@ -20,6 +20,8 @@ export interface CreateMessageRequest {
   ct_hash: string;
   sender_email: string;
   recipient_email: string;
+  secret_question: string;
+  encrypted_fragment_a: string;
 }
 
 export interface CreateMessageResponse {

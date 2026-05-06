@@ -2,14 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import {
-  generateEncryptionKey,
   generateCheckinToken,
-  encryptMessage,
-  downloadKeyFile,
 } from "@/lib/crypto";
+import { SecurityService } from "@/lib/SecurityService";
 import { sha256 } from "@/lib/hash";
 
-type Step = "compose" | "confirm" | "done";
+type Step = "compose" | "lock" | "route" | "confirm" | "done";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -166,6 +164,8 @@ function FeatureCard({
 function StepIndicator({ step, variant = "light" }: { step: Step; variant?: "light" | "dark" }) {
   const steps: { key: Step; label: string }[] = [
     { key: "compose", label: "Write" },
+    { key: "lock", label: "Lock" },
+    { key: "route", label: "Route" },
     { key: "confirm", label: "Review" },
     { key: "done", label: "Done" },
   ];
@@ -400,7 +400,7 @@ function FormCard({ children, onBack }: { children: React.ReactNode; onBack?: ()
     <div
       style={{
         minHeight: "100vh",
-        background: "var(--bg-page)",
+        background: "linear-gradient(160deg, var(--navy-deep) 0%, var(--navy) 100%)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -419,7 +419,7 @@ function FormCard({ children, onBack }: { children: React.ReactNode; onBack?: ()
           {onBack && (
             <button
               onClick={onBack}
-              className="lm-btn lm-btn-ghost"
+              className="lm-btn lm-btn-ghost-dark"
               style={{
                 padding: "8px",
                 borderRadius: 10,
@@ -434,7 +434,7 @@ function FormCard({ children, onBack }: { children: React.ReactNode; onBack?: ()
             style={{
               fontWeight: 800,
               fontSize: "1rem",
-              color: "var(--navy)",
+              color: "var(--text-on-dark-secondary)",
               letterSpacing: "-0.01em",
             }}
           >
@@ -457,10 +457,38 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [senderEmail, setSenderEmail] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
+  const [secretQuestion, setSecretQuestion] = useState("");
+  const [secretAnswer, setSecretAnswer] = useState("");
   const [checkinUrl, setCheckinUrl] = useState("");
+  const [handoverUrl, setHandoverUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: "", visible: false });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const saved = localStorage.getItem("lm_draft");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.message) setMessage(parsed.message);
+        if (parsed.senderEmail) setSenderEmail(parsed.senderEmail);
+        if (parsed.recipientEmail) setRecipientEmail(parsed.recipientEmail);
+        if (parsed.secretQuestion) setSecretQuestion(parsed.secretQuestion);
+        if (parsed.secretAnswer) setSecretAnswer(parsed.secretAnswer);
+        if (parsed.step && parsed.step !== "done") setStep(parsed.step);
+        if (parsed.view) setView(parsed.view);
+      } catch { }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (mounted && step !== "done") {
+      const data = { view, step, message, senderEmail, recipientEmail, secretQuestion, secretAnswer };
+      localStorage.setItem("lm_draft", JSON.stringify(data));
+    }
+  }, [mounted, view, step, message, senderEmail, recipientEmail, secretQuestion, secretAnswer]);
 
   const showToast = useCallback((msg: string) => {
     setToast({ message: msg, visible: true });
@@ -468,8 +496,8 @@ export default function Home() {
   }, []);
 
   async function handleSubmit() {
-    if (!message.trim() || !senderEmail.trim() || !recipientEmail.trim()) {
-      setError("Message, your email, and recipient email are required.");
+    if (!message.trim() || !senderEmail.trim() || !recipientEmail.trim() || !secretQuestion.trim() || !secretAnswer.trim()) {
+      setError("All fields across all steps are required.");
       return;
     }
     if (senderEmail.trim().toLowerCase() === recipientEmail.trim().toLowerCase()) {
@@ -479,9 +507,12 @@ export default function Home() {
     setLoading(true);
     setError("");
     try {
-      const ek = await generateEncryptionKey();
+      const vk = SecurityService.generateVaultKey();
+      const { fragmentA, fragmentBHex } = SecurityService.splitVaultKey(vk);
+      const encryptedFragmentA = await SecurityService.encryptFragmentA(fragmentA, secretAnswer.trim());
+      const encryptedBlob = await SecurityService.encryptContent(message, vk);
+
       const ct = generateCheckinToken();
-      const encryptedBlob = await encryptMessage(message, ek);
       const ctHash = await sha256(ct);
 
       const res = await fetch("/api/messages", {
@@ -492,6 +523,8 @@ export default function Home() {
           ct_hash: ctHash,
           sender_email: senderEmail,
           recipient_email: recipientEmail,
+          secret_question: secretQuestion.trim(),
+          encrypted_fragment_a: encryptedFragmentA,
         }),
       });
 
@@ -500,9 +533,11 @@ export default function Home() {
         throw new Error(data.error || "Failed to create message");
       }
 
-      downloadKeyFile(ek);
+      const data = await res.json();
       const baseUrl = window.location.origin;
       setCheckinUrl(`${baseUrl}/checkin?ct=${ct}`);
+      setHandoverUrl(`${baseUrl}/read/${data.id}#${fragmentBHex}`);
+      localStorage.removeItem("lm_draft");
       setStep("done");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -536,7 +571,7 @@ export default function Home() {
         <div style={{ marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
             <h2 style={{ fontWeight: 800, fontSize: "1.25rem", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
-              Write your message
+              Write your final words
             </h2>
             <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", margin: "2px 0 0" }}>
               Encrypted before it leaves your browser.
@@ -547,10 +582,9 @@ export default function Home() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div>
-            <label htmlFor="message" className="lm-label">Your message</label>
             <textarea
               id="message"
-              rows={4}
+              rows={8}
               className="lm-input"
               style={{ resize: "vertical", lineHeight: 1.6 }}
               placeholder="Write the words you want to be delivered…"
@@ -562,6 +596,98 @@ export default function Home() {
             </p>
           </div>
 
+          <button
+            onClick={() => setStep("lock")}
+            disabled={!message.trim()}
+            className="lm-btn lm-btn-primary"
+            style={{ width: "100%", marginTop: 4 }}
+          >
+            Next: Set the Lock
+            <IconArrow />
+          </button>
+        </div>
+      </FormCard>
+    );
+  }
+
+  // ── Lock Step ─────────────────────────────────────────────────────────────
+  if (step === "lock") {
+    return (
+      <FormCard onBack={() => setStep("compose")}>
+        <div style={{ marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <h2 style={{ fontWeight: 800, fontSize: "1.25rem", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
+              The Memory Lock
+            </h2>
+            <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", margin: "2px 0 0" }}>
+              A question only they would know.
+            </p>
+          </div>
+          <StepIndicator step={step} variant="light" />
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div>
+            <label htmlFor="secretQuestion" className="lm-label">The Challenge</label>
+            <input
+              id="secretQuestion"
+              type="text"
+              className="lm-input"
+              placeholder="e.g. What did we name the stray cat in Paris?"
+              value={secretQuestion}
+              onChange={(e) => setSecretQuestion(e.target.value)}
+            />
+            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 4, lineHeight: 1.4 }}>
+              Your recipient will be prompted with this question to open the vault.
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="secretAnswer" className="lm-label">The Exact Answer</label>
+            <input
+              id="secretAnswer"
+              type="text"
+              className="lm-input"
+              placeholder="e.g. Barnaby"
+              value={secretAnswer}
+              onChange={(e) => setSecretAnswer(e.target.value)}
+            />
+            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 4, lineHeight: 1.4 }}>
+              The cryptographic key is securely derived directly from this answer.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setStep("route")}
+            disabled={!secretQuestion.trim() || !secretAnswer.trim()}
+            className="lm-btn lm-btn-primary"
+            style={{ width: "100%", marginTop: 4 }}
+          >
+            Next: Routing Details
+            <IconArrow />
+          </button>
+        </div>
+      </FormCard>
+    );
+  }
+
+  // ── Route Step ────────────────────────────────────────────────────────────
+  if (step === "route") {
+    return (
+      <FormCard onBack={() => setStep("lock")}>
+        <div style={{ marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <h2 style={{ fontWeight: 800, fontSize: "1.25rem", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
+              Routing Details
+            </h2>
+            <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", margin: "2px 0 0" }}>
+              Where should we send the reminders?
+            </p>
+          </div>
+          <StepIndicator step={step} variant="light" />
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div>
             <label htmlFor="senderEmail" className="lm-label">Your email</label>
             <input
@@ -573,12 +699,12 @@ export default function Home() {
               onChange={(e) => setSenderEmail(e.target.value)}
             />
             <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 4, lineHeight: 1.4 }}>
-              For check-in reminders only.
+              We'll send you check-in reminders here.
             </p>
           </div>
 
           <div>
-            <label htmlFor="recipientEmail" className="lm-label">Recipient&apos;s email</label>
+            <label htmlFor="recipientEmail" className="lm-label">Recipient's email</label>
             <input
               id="recipientEmail"
               type="email"
@@ -587,6 +713,9 @@ export default function Home() {
               value={recipientEmail}
               onChange={(e) => setRecipientEmail(e.target.value)}
             />
+            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 4, lineHeight: 1.4 }}>
+              For internal routing records only. You must securely share the Handover URL yourself.
+            </p>
           </div>
 
           {error && (
@@ -618,11 +747,11 @@ export default function Home() {
               setError("");
               setStep("confirm");
             }}
-            disabled={!message.trim() || !senderEmail.trim() || !recipientEmail.trim()}
+            disabled={!senderEmail.trim() || !recipientEmail.trim()}
             className="lm-btn lm-btn-primary"
             style={{ width: "100%", marginTop: 4 }}
           >
-            Review & continue
+            Review & Continue
             <IconArrow />
           </button>
         </div>
@@ -633,11 +762,11 @@ export default function Home() {
   // ── Confirm Step ──────────────────────────────────────────────────────────
   if (step === "confirm") {
     const warnings = [
-      "Your message will be encrypted with AES-256-GCM. Only the key can unlock it.",
-      "A .key file will download automatically when you submit. If you lose it, your message is permanently unrecoverable.",
+      "Your message is encrypted client-side with AES-256-GCM. We never see it.",
+      "The vault is cryptographically locked by your Secret Answer. If you forget it, the message is permanently lost.",
       "You'll receive a check-in URL. Bookmark it. Visit it at least once every 14 days.",
-      "If you stop checking in, the message is released to your recipient. No undo. No exceptions.",
-      "Anyone with the read link and your .key file can read the message. Protect both.",
+      "If you stop checking in, the message is released. You must securely share the Handover URL with your recipient.",
+      "Anyone with the Handover URL and your Secret Answer can decrypt the message.",
     ];
 
     return (
@@ -716,7 +845,7 @@ export default function Home() {
 
             <div style={{ display: "flex", gap: 12 }}>
               <button
-                onClick={() => setStep("compose")}
+                onClick={() => setStep("route")}
                 className="lm-btn lm-btn-ghost-dark"
                 style={{ flex: 1 }}
               >
@@ -793,35 +922,29 @@ export default function Home() {
                 </h2>
               </div>
               <p style={{ fontSize: "0.8125rem", color: "var(--text-on-dark-muted)", margin: 0 }}>
-                Your encryption key (.key file) has been downloaded.
+                Your links are ready. Please save them securely.
               </p>
             </div>
             <StepIndicator step={step} variant="dark" />
           </div>
 
-          {/* Key warning */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 10,
-              padding: "12px 14px",
-              background: "rgba(239,68,68,0.08)",
-              border: "1px solid rgba(239,68,68,0.2)",
-              borderRadius: 10,
-              marginBottom: 18,
-            }}
-          >
-            <span style={{ fontSize: "0.875rem", flexShrink: 0, marginTop: 1 }}>⚠️</span>
-            <p style={{ fontSize: "0.8125rem", color: "var(--text-on-dark-secondary)", margin: 0, lineHeight: 1.4 }}>
-              <strong style={{ color: "#f87171" }}>Lost your .key file? Message is unrecoverable.</strong> Store it in a password manager or safe place.
+          {/* Key warning replaced with Handover info */}
+          <div style={{ marginBottom: 16 }}>
+            <label className="lm-label" style={{ color: "var(--amber)" }}>
+              Share this Handover URL Secretly
+            </label>
+            <div className="lm-copy-box" style={{ borderColor: 'rgba(245,158,11,0.5)', background: 'rgba(245,158,11,0.05)' }}>
+              <input type="text" readOnly value={handoverUrl} aria-label="Handover URL" />
+            </div>
+            <p style={{ fontSize: "0.75rem", color: "var(--text-on-dark-secondary)", marginTop: 6, lineHeight: 1.4 }}>
+              Give this to your trusted recipient. They will need it, along with your Secret Answer, to unlock the vault.
             </p>
           </div>
 
           {/* Check-in URL */}
           <div style={{ marginBottom: 14 }}>
             <label className="lm-label" style={{ color: "var(--text-on-dark-muted)" }}>
-              Your check-in URL
+              Your check-in URL (Keep this private)
             </label>
             <div className="lm-copy-box">
               <input type="text" readOnly value={checkinUrl} aria-label="Check-in URL" />

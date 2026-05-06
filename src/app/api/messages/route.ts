@@ -8,10 +8,9 @@ export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as CreateMessageRequest;
 
-    // Validate required fields
-    if (!body.encrypted_blob || !body.ct_hash || !body.sender_email || !body.recipient_email) {
+    if (!body.encrypted_blob || !body.ct_hash || !body.sender_email || !body.recipient_email || !body.secret_question || !body.encrypted_fragment_a) {
       return NextResponse.json(
-        { error: "Missing required fields: encrypted_blob, ct_hash, sender_email, recipient_email" },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
@@ -60,6 +59,8 @@ export async function POST(request: NextRequest) {
         ct_hash: ctHashDouble,
         sender_email: body.sender_email,
         recipient_email: body.recipient_email,
+        secret_question: body.secret_question,
+        encrypted_fragment_a: body.encrypted_fragment_a,
       })
       .select("id")
       .single();

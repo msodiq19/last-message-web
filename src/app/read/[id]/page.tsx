@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { decryptMessage } from "@/lib/crypto";
+import { SecurityService } from "@/lib/SecurityService";
 
 // ─── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -44,11 +44,13 @@ export default function ReadPage({
 }) {
   const { id } = use(params);
   const [encryptedBlob, setEncryptedBlob] = useState<string | null>(null);
+  const [encryptedFragmentA, setEncryptedFragmentA] = useState<string | null>(null);
+  const [secretQuestion, setSecretQuestion] = useState<string>("");
   const [decryptedMessage, setDecryptedMessage] = useState<string | null>(null);
-  const [keyInput, setKeyInput] = useState("");
+  const [answerInput, setAnswerInput] = useState("");
   const [status, setStatus] = useState<"loading" | "ready" | "decrypted" | "error" | "not-found">("loading");
   const [decrypting, setDecrypting] = useState(false);
-  const [dragging, setDragging] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     fetch(`/api/read/${id}`)
@@ -58,41 +60,31 @@ export default function ReadPage({
       })
       .then((data) => {
         setEncryptedBlob(data.encrypted_blob);
+        setEncryptedFragmentA(data.encrypted_fragment_a);
+        setSecretQuestion(data.secret_question);
         setStatus("ready");
       })
       .catch(() => setStatus("not-found"));
   }, [id]);
 
   async function handleDecrypt() {
-    if (!encryptedBlob || !keyInput.trim()) return;
+    if (!encryptedBlob || !encryptedFragmentA || !answerInput.trim()) return;
     setDecrypting(true);
-    let key = keyInput.trim();
-    const lines = key.split("\n").filter((l) => !l.startsWith("#") && l.trim());
-    if (lines.length > 0) key = lines[lines.length - 1].trim();
-    const result = await decryptMessage(encryptedBlob, key);
-    if (result) {
+    setErrorMessage("");
+    try {
+      const fragmentBHex = window.location.hash.slice(1);
+      if (!fragmentBHex) {
+        throw new Error("Missing URL fragment. Did you copy the full link?");
+      }
+      const fragmentA = await SecurityService.decryptFragmentA(encryptedFragmentA, answerInput.trim());
+      const vk = SecurityService.reconstructVaultKey(fragmentA, fragmentBHex);
+      const result = await SecurityService.decryptContent(encryptedBlob, vk);
       setDecryptedMessage(result);
       setStatus("decrypted");
+    } catch (e) {
+      setErrorMessage(e instanceof Error ? e.message : "Incorrect answer or invalid link.");
     }
     setDecrypting(false);
-  }
-
-  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setKeyInput(reader.result as string);
-    reader.readAsText(file);
-  }
-
-  function handleDrop(e: React.DragEvent<HTMLLabelElement>) {
-    e.preventDefault();
-    setDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setKeyInput(reader.result as string);
-    reader.readAsText(file);
   }
 
   const pageStyle: React.CSSProperties = {
@@ -214,73 +206,44 @@ export default function ReadPage({
 
             {/* Key upload card */}
             <div className="lm-card-dark" style={{ padding: "24px 28px" }}>
-              <label className="lm-label" style={{ color: "var(--text-on-dark-muted)" }}>
-                Enter your encryption key
-              </label>
+              <div style={{ marginBottom: 20 }}>
+                <label className="lm-label" style={{ color: "var(--amber)", fontSize: "0.875rem" }}>
+                  The Memory Lock:
+                </label>
+                <p style={{ fontWeight: 600, fontSize: "1.125rem", color: "var(--text-on-dark)", marginTop: 4 }}>
+                  {secretQuestion}
+                </p>
+              </div>
 
-              {/* Drop zone */}
-              <label
-                htmlFor="keyfile"
-                onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-                onDragLeave={() => setDragging(false)}
-                onDrop={handleDrop}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  padding: "20px 16px",
-                  border: `2px dashed ${dragging ? "var(--amber)" : "rgba(255,255,255,0.12)"}`,
-                  borderRadius: 14,
-                  cursor: "pointer",
-                  background: dragging ? "rgba(245,158,11,0.05)" : "rgba(255,255,255,0.02)",
-                  transition: "all 0.2s ease",
-                  marginBottom: 16,
-                }}
-              >
-                <IconUpload />
-                <div style={{ textAlign: "center" }}>
-                  <p style={{ fontWeight: 600, fontSize: "0.9375rem", color: "var(--text-on-dark-secondary)", margin: "0 0 4px" }}>
-                    Drop your .key file here
-                  </p>
-                  <p style={{ fontSize: "0.8125rem", color: "var(--text-on-dark-muted)", margin: 0 }}>
-                    or click to browse
-                  </p>
-                </div>
+              <div style={{ marginBottom: 16 }}>
+                <label className="lm-label" style={{ color: "var(--text-on-dark-muted)" }}>
+                  Your Answer
+                </label>
+
                 <input
-                  id="keyfile"
-                  type="file"
-                  accept=".key,.txt"
-                  onChange={handleFileUpload}
-                  style={{ display: "none" }}
+                  type="text"
+                  className="lm-input"
+                  style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1.5px solid rgba(255,255,255,0.10)",
+                    color: "var(--text-on-dark)",
+                  }}
+                  placeholder="Type the answer exactly..."
+                  value={answerInput}
+                  onChange={(e) => setAnswerInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') handleDecrypt(); }}
                 />
-              </label>
+              </div>
 
-              <p style={{ fontSize: "0.8125rem", color: "var(--text-on-dark-muted)", textAlign: "center", margin: "0 0 12px" }}>
-                or paste it manually
-              </p>
-
-              <textarea
-                rows={3}
-                className="lm-input"
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1.5px solid rgba(255,255,255,0.10)",
-                  color: "var(--text-on-dark)",
-                  fontFamily: "ui-monospace, monospace",
-                  fontSize: "0.8125rem",
-                  marginBottom: 16,
-                  resize: "none",
-                }}
-                placeholder="Paste the encryption key here…"
-                value={keyInput}
-                onChange={(e) => setKeyInput(e.target.value)}
-              />
+              {errorMessage && (
+                <div style={{ color: "#f87171", fontSize: "0.875rem", marginBottom: 16, textAlign: "center" }}>
+                  {errorMessage}
+                </div>
+              )}
 
               <button
                 onClick={handleDecrypt}
-                disabled={!keyInput.trim() || decrypting}
+                disabled={!answerInput.trim() || decrypting}
                 className="lm-btn lm-btn-dark"
                 style={{ width: "100%" }}
               >

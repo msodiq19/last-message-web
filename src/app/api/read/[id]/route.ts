@@ -15,7 +15,7 @@ export async function GET(
 
   const { data, error } = await supabase
     .from("messages")
-    .select("encrypted_blob")
+    .select("encrypted_blob, secret_question, encrypted_fragment_a")
     .eq("id", id)
     .eq("status", "released")
     .single();
@@ -27,5 +27,5 @@ export async function GET(
     );
   }
 
-  return NextResponse.json({ encrypted_blob: data.encrypted_blob });
+  return NextResponse.json({ encrypted_blob: data.encrypted_blob, secret_question: data.secret_question, encrypted_fragment_a: data.encrypted_fragment_a });
 }
