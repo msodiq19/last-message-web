@@ -5,11 +5,13 @@ export interface Database {
         Row: { id: string; email: string; full_name: string | null; created_at: string; };
         Insert: { id: string; email: string; full_name?: string | null; created_at?: string; };
         Update: { id?: string; email?: string; full_name?: string | null; created_at?: string; };
+        Relationships: [];
       };
       successors: {
         Row: { id: string; user_id: string; email: string; name: string; public_key: string | null; private_key_enc: string | null; created_at: string; };
         Insert: { id?: string; user_id: string; email: string; name: string; public_key?: string | null; private_key_enc?: string | null; created_at?: string; };
         Update: { id?: string; user_id?: string; email?: string; name?: string; public_key?: string | null; private_key_enc?: string | null; created_at?: string; };
+        Relationships: [];
       };
       messages: {
         Row: {
@@ -57,16 +59,34 @@ export interface Database {
           temporary_public_key?: string | null;
           temporary_private_key_enc?: string | null;
         };
+        Relationships: [];
       };
       message_recipients: {
         Row: { id: string; message_id: string; successor_id: string; encrypted_key: string | null; handshake_token: string; status: "pending" | "handshake_complete" | "delivered" | "read"; created_at: string; };
         Insert: { id?: string; message_id: string; successor_id: string; encrypted_key?: string | null; handshake_token: string; status?: "pending" | "handshake_complete" | "delivered" | "read"; created_at?: string; };
         Update: { id?: string; message_id?: string; successor_id?: string; encrypted_key?: string | null; handshake_token?: string; status?: "pending" | "handshake_complete" | "delivered" | "read"; created_at?: string; };
+        Relationships: [
+          {
+            foreignKeyName: "message_recipients_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_recipients_successor_id_fkey"
+            columns: ["successor_id"]
+            isOneToOne: false
+            referencedRelation: "successors"
+            referencedColumns: ["id"]
+          }
+        ];
       };
       activity_logs: {
         Row: { id: string; user_id: string; type: string; details: any; created_at: string; };
         Insert: { id?: string; user_id: string; type: string; details?: any; created_at?: string; };
         Update: { id?: string; user_id?: string; type?: string; details?: any; created_at?: string; };
+        Relationships: [];
       };
     };
     Views: Record<string, never>;

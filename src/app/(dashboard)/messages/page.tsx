@@ -20,7 +20,7 @@ export default async function MessagesPage() {
                 successors ( name )
             )
         `)
-        .eq("user_id", user?.id)
+        .eq("user_id", user?.id || "")
         .order("created_at", { ascending: false });
 
     const messages: any[] = messagesData || [];

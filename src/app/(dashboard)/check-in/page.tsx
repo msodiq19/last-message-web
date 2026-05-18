@@ -10,16 +10,22 @@ export default async function CheckinPage() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    const { data: messages } = await supabase
+    const { data: messagesData } = await supabase
         .from("messages")
-        .select("*")
-        .eq("sender_email", user?.email ?? "")
+        .select(`
+            *,
+            message_recipients (
+                successors ( name )
+            )
+        `)
+        .eq("user_id", user?.id || "")
         .eq("status", "active")
         .order("last_checkin", { ascending: true });
 
+    const messages: any[] = messagesData || [];
     const soonest = messages?.[0];
     const daysPerFreq = soonest?.release_after || 14;
-    const nextCheckinDate = soonest
+    const nextCheckinDate = soonest && soonest.last_checkin
         ? new Date(new Date(soonest.last_checkin).getTime() + daysPerFreq * 86400000)
         : null;
 
@@ -86,20 +92,25 @@ export default async function CheckinPage() {
                             <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)" }}>
                                 <p style={{ fontWeight: 600, fontSize: 14 }}>Active messages</p>
                             </div>
-                            {messages?.map((msg) => (
-                                <Link key={msg.id} href={`/messages/${msg.id}`} className="ic-message-item">
-                                    <div className="ic-message-avatar" style={{ width: 34, height: 34, fontSize: 12 }}>
-                                        {msg.recipient_email?.slice(0, 2).toUpperCase()}
-                                    </div>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <p style={{ fontWeight: 600, fontSize: 13 }} className="ic-truncate">To: {msg.recipient_email}</p>
-                                        <p style={{ fontSize: 12, color: "var(--text-muted)" }}>Last checked in: {formatDate(msg.last_checkin)}</p>
-                                    </div>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" />
-                                    </svg>
-                                </Link>
-                            ))}
+                            {messages?.map((msg) => {
+                                const recipientsList = msg.message_recipients?.map((mr: any) => mr.successors?.name).filter(Boolean).join(", ") || "No recipients";
+                                const avatarLetter = (recipientsList !== "No recipients" ? recipientsList : "M").slice(0, 2).toUpperCase();
+
+                                return (
+                                    <Link key={msg.id} href={`/messages/${msg.id}`} className="ic-message-item">
+                                        <div className="ic-message-avatar" style={{ width: 34, height: 34, fontSize: 12 }}>
+                                            {avatarLetter}
+                                        </div>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <p style={{ fontWeight: 600, fontSize: 13 }} className="ic-truncate">To: {recipientsList}</p>
+                                            <p style={{ fontSize: 12, color: "var(--text-muted)" }}>Last checked in: {formatDate(msg.last_checkin)}</p>
+                                        </div>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" />
+                                        </svg>
+                                    </Link>
+                                );
+                            })}
                         </div>
 
                         <p style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center" }}>

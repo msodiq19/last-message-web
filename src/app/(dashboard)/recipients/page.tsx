@@ -5,16 +5,28 @@ export default async function RecipientsPage() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    const { data: messages } = await supabase
+    const { data: messagesData } = await supabase
         .from("messages")
-        .select("id, recipient_email, status, release_after, last_checkin")
-        .eq("sender_email", user?.email ?? "");
+        .select(`
+            id, status, release_after, last_checkin,
+            message_recipients (
+                successors ( name, email )
+            )
+        `)
+        .eq("user_id", user?.id || "");
+
+    const messages: any[] = messagesData || [];
 
     // Group by recipient email for address-book style
     const recipientMap = new Map<string, typeof messages>();
-    messages?.forEach((m) => {
-        const current = recipientMap.get(m.recipient_email) || [];
-        recipientMap.set(m.recipient_email, [...current, m]);
+    messages.forEach((m) => {
+        m.message_recipients?.forEach((mr: any) => {
+            const email = mr.successors?.email;
+            if (email) {
+                const current = recipientMap.get(email) || [];
+                recipientMap.set(email, [...current, m]);
+            }
+        });
     });
 
     const recipients = Array.from(recipientMap.entries());
@@ -45,22 +57,27 @@ export default async function RecipientsPage() {
                             About recipients: Recipients receive a secure link to your message. They never need an account where your message is stored.
                         </div>
                         <div className="ic-card" style={{ padding: 0 }}>
-                            {recipients.map(([email, msgs]) => (
-                                <div key={email} className="ic-message-item" style={{ cursor: "default" }}>
-                                    <div className="ic-message-avatar">
-                                        {email.split("@")[0].slice(0, 2).toUpperCase()}
+                            {recipients.map(([email, msgs]) => {
+                                // Extract the name for this recipient from the first message mapping
+                                const name = msgs[0]?.message_recipients?.find((mr: any) => mr.successors?.email === email)?.successors?.name || email.split("@")[0];
+
+                                return (
+                                    <div key={email} className="ic-message-item" style={{ cursor: "default" }}>
+                                        <div className="ic-message-avatar">
+                                            {name.slice(0, 2).toUpperCase()}
+                                        </div>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <p style={{ fontWeight: 600, fontSize: 14 }} className="ic-truncate">{name}</p>
+                                            <p style={{ fontSize: 12, color: "var(--text-muted)" }}>{email}</p>
+                                        </div>
+                                        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                                            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{msgs.length} message{msgs.length > 1 ? "s" : ""}</span>
+                                            <span className="ic-badge ic-badge-active" style={{ fontSize: 11 }}>Can view</span>
+                                            <button className="ic-btn ic-btn-ghost ic-btn-sm" style={{ padding: "4px 6px" }}>···</button>
+                                        </div>
                                     </div>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <p style={{ fontWeight: 600, fontSize: 14 }} className="ic-truncate">{email.split("@")[0]}</p>
-                                        <p style={{ fontSize: 12, color: "var(--text-muted)" }}>{email}</p>
-                                    </div>
-                                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                                        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{msgs?.length} message{(msgs?.length ?? 0) > 1 ? "s" : ""}</span>
-                                        <span className="ic-badge ic-badge-active" style={{ fontSize: 11 }}>Can view</span>
-                                        <button className="ic-btn ic-btn-ghost ic-btn-sm" style={{ padding: "4px 6px" }}>···</button>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 )}

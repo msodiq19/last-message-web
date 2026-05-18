@@ -26,17 +26,23 @@ export default async function DashboardPage() {
     const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
     // Fetch messages for this user
-    const { data: messages } = await supabase
+    const { data: messagesData } = await supabase
         .from("messages")
-        .select("*")
-        .eq("sender_email", user?.email ?? "")
+        .select(`
+            *,
+            message_recipients (
+                successors ( name )
+            )
+        `)
+        .eq("user_id", user?.id || "")
         .order("created_at", { ascending: false })
         .limit(5);
 
-    const hasMessages = messages && messages.length > 0;
+    const messages: any[] = messagesData || [];
+    const hasMessages = messages.length > 0;
 
     // Pick the soonest-due active message for the check-in ring
-    const activeMessages = messages?.filter((m) => m.status === "active") ?? [];
+    const activeMessages = messages.filter((m) => m.status === "active");
     const soonestDue = activeMessages.length > 0
         ? activeMessages.reduce((a, b) => new Date(a.last_checkin) < new Date(b.last_checkin) ? a : b)
         : null;
@@ -94,17 +100,18 @@ export default async function DashboardPage() {
                                     <span style={{ fontWeight: 600, fontSize: 15 }}>Your messages</span>
                                     <Link href="/messages" style={{ fontSize: 13, color: "var(--forest)", textDecoration: "none" }}>View all</Link>
                                 </div>
-                                {messages?.map((msg) => {
+                                {messages.map((msg) => {
                                     const nextCheckin = new Date(new Date(msg.last_checkin).getTime() + ((msg.release_after || 14) * 24 * 60 * 60 * 1000));
                                     const days = daysUntil(nextCheckin.toISOString());
-                                    const initials = getInitials(msg.recipient_email?.split("@")[0] ?? "R");
+                                    const recipientsList = msg.message_recipients?.map((mr: any) => mr.successors?.name).filter(Boolean).join(", ") || "No recipients";
+                                    const initials = getInitials(recipientsList !== "No recipients" ? recipientsList : "M");
                                     return (
                                         <Link key={msg.id} href={`/messages/${msg.id}`} className="ic-message-item">
                                             <div className="ic-message-avatar">{initials}</div>
                                             <div style={{ flex: 1, minWidth: 0 }}>
                                                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                                     <span style={{ fontWeight: 600, fontSize: 14 }} className="ic-truncate">
-                                                        To: {msg.recipient_email}
+                                                        To: {recipientsList}
                                                     </span>
                                                     <span className={`ic-badge ic-badge-${msg.status}`} style={{ flexShrink: 0 }}>
                                                         <span className={`ic-dot ic-dot-${msg.status}`} />

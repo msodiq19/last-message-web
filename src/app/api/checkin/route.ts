@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase";
+import { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/database";
 import { sha256 } from "@/lib/hash";
 
 export async function GET(request: NextRequest) {
@@ -12,29 +14,10 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Hash the token the same way it was stored:
-  // Client hashed CT once before sending during creation,
-  // then server hashed again. So here we hash raw CT once (client-side equivalent),
-  // then hash that again (server-side equivalent).
-  const ctHashOnce = await sha256(ct);
-  const ctHashDouble = await sha256(ctHashOnce);
-
-  const supabase = createServiceClient();
-
-  const { data, error } = await supabase
-    .from("messages")
-    .update({ last_checkin: new Date().toISOString() })
-    .eq("ct_hash", ctHashDouble)
-    .eq("status", "active")
-    .select("id")
-    .single();
-
-  if (error || !data) {
-    return NextResponse.json(
-      { error: "Invalid or expired check-in token" },
-      { status: 404 }
-    );
-  }
-
-  return NextResponse.json({ success: true, message: "Check-in confirmed" });
+  // The legacy ct_hash URL-based checkins have been deprecated for security
+  // Active users must check-in natively through the Zero-Knowledge authenticated dashboard
+  return NextResponse.json(
+    { error: "Legacy email check-ins are deactivated. Please log in to your dashboard to check in securely." },
+    { status: 410 }
+  );
 }

@@ -19,7 +19,7 @@ export async function createLockedMessage(payload: {
     await supabase.from("profiles").upsert({
         id: user.id,
         email: user.email!,
-    });
+    } as any);
 
     // 2. Insert Message
     const { data: msg_data, error: msg_err } = await supabase.from("messages").insert({
@@ -34,7 +34,7 @@ export async function createLockedMessage(payload: {
 
     if (msg_err) throw new Error("Failed to create message: " + msg_err.message);
 
-    const message_id = msg_data.id;
+    const message_id = (msg_data as any).id;
 
     // 3. Process Recipients
     for (const rec of payload.recipients) {
@@ -48,14 +48,14 @@ export async function createLockedMessage(payload: {
             .single();
 
         if (exist) {
-            successorId = exist.id;
+            successorId = (exist as any).id;
         } else {
             const { data: ins } = await supabase.from("successors").insert({
                 user_id: user.id,
                 email: rec.email,
                 name: rec.name
             } as any).select("id").single();
-            successorId = ins!.id;
+            successorId = (ins as any).id;
         }
 
         // Insert Message Recipient Lockbox

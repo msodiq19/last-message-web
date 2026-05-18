@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase";
+import { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/database";
 import { sendReminderEmail, sendReleaseEmail } from "@/lib/email";
 import { REMINDER_SCHEDULE, MAX_EMAIL_RETRIES } from "@/lib/constants";
 import type { Message } from "@/types";
@@ -21,15 +23,20 @@ async function handleCron(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = createServiceClient();
+  const supabase = createServiceClient() as SupabaseClient<Database>;
   const now = new Date();
 
-  // Fetch all active messages
+  // Fetch all active messages with their recipients
   const { data: messages, error } = await supabase
     .from("messages")
-    .select("*")
-    .eq("status", "active")
-    .returns<Message[]>();
+    .select(`
+      *,
+      message_recipients (
+        id, status, handshake_token,
+        successors ( name, email )
+      )
+    `)
+    .eq("status", "active");
 
   if (error) {
     console.error("Failed to fetch messages:", error);
@@ -47,7 +54,6 @@ async function handleCron(request: NextRequest) {
   const results = { reminders: 0, releases: 0, errors: 0 };
 
   for (const msg of messages) {
-    // Use date-only comparison to avoid clock skew / DST issues
     const lastCheckinDate = new Date(msg.last_checkin);
     const nowDate = new Date(now.toISOString().split("T")[0]);
     const checkinDate = new Date(lastCheckinDate.toISOString().split("T")[0]);
@@ -57,11 +63,10 @@ async function handleCron(request: NextRequest) {
 
     // --- Release (idempotent) ---
     if (daysSinceCheckin >= msg.release_after) {
-      // Atomic: only transition if still active (prevents duplicate releases)
       const { data: updated } = await supabase
         .from("messages")
         .update({
-          status: "released" as const,
+          status: "released",
           released_at: now.toISOString(),
         })
         .eq("id", msg.id)
@@ -69,16 +74,20 @@ async function handleCron(request: NextRequest) {
         .select("id")
         .single();
 
-      if (!updated) {
-        // Already released by a prior run — skip, no-op
-        continue;
-      }
+      if (!updated) continue;
 
-      const readUrl = `${baseUrl}/read/${msg.id}`;
-      const { success } = await sendReleaseEmail(msg.recipient_email, readUrl);
+      // Extract all successors and send individual URLs
+      if (msg.message_recipients && msg.message_recipients.length > 0) {
+        for (const recipient of msg.message_recipients) {
+          const successorEmail = (recipient as any).successors?.email;
+          if (!successorEmail) continue;
 
-      if (!success) {
-        console.error(`Release email failed for message ${msg.id}, but message released anyway`);
+          const readUrl = `${baseUrl}/read/${recipient.id}`;
+          const { success } = await sendReleaseEmail(successorEmail, readUrl);
+          if (!success) {
+            console.error(`Release email failed for recipient ${recipient.id}`);
+          }
+        }
       }
 
       results.releases++;
@@ -86,7 +95,7 @@ async function handleCron(request: NextRequest) {
     }
 
     // --- Reminders ---
-    if (msg.email_invalid) continue; // No point sending to invalid email
+    if (msg.email_invalid) continue;
 
     for (const schedule of REMINDER_SCHEDULE) {
       if (daysSinceCheckin === schedule.daysSinceCheckin) {
@@ -111,7 +120,7 @@ async function handleCron(request: NextRequest) {
         } else {
           results.reminders++;
         }
-        break; // Only one reminder per day per message
+        break;
       }
     }
   }
