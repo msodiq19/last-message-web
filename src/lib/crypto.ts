@@ -1,134 +1,168 @@
 /**
- * Client-side encryption/decryption using Web Crypto API (AES-256-GCM).
- *
- * All crypto happens in the browser. The server never sees the plaintext
- * or the encryption key.
+ * Core cryptographic primitives using Web Crypto API.
+ * AES-GCM (256-bit) for symmetric payloads.
+ * RSA-OAEP (2048-bit) for asymmetric key wrapping.
+ * PBKDF2 for password-based key derivation.
  */
 
-/**
- * Generate a new AES-256-GCM encryption key.
- * Returns the key as a base64url-encoded string.
- */
-export async function generateEncryptionKey(): Promise<string> {
-  const key = await crypto.subtle.generateKey(
+// --- Base64/Buffer Helpers ---
+
+export function bufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (const b of bytes) binary += String.fromCharCode(b);
+  return btoa(binary);
+}
+
+export function base64ToBuffer(base64: string): ArrayBuffer {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
+
+export function bufferToHex(buffer: ArrayBuffer): string {
+  return Array.from(new Uint8Array(buffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export function hexToBuffer(hex: string): ArrayBuffer {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+  }
+  return bytes.buffer;
+}
+
+// --- Symmetric Encryption (AES-GCM) ---
+
+export async function generateSymmetricKey(): Promise<CryptoKey> {
+  return crypto.subtle.generateKey(
     { name: "AES-GCM", length: 256 },
-    true, // extractable
+    true,
     ["encrypt", "decrypt"]
   );
+}
+
+export async function exportSymmetricKey(key: CryptoKey): Promise<string> {
   const raw = await crypto.subtle.exportKey("raw", key);
-  return bufferToBase64url(raw);
+  return bufferToBase64(raw);
 }
 
-/**
- * Generate a random check-in token (32 bytes, base64url-encoded).
- */
-export function generateCheckinToken(): string {
-  const bytes = new Uint8Array(32);
-  crypto.getRandomValues(bytes);
-  return bufferToBase64url(bytes.buffer);
-}
-
-/**
- * Encrypt a plaintext message with the given base64url-encoded key.
- * Returns a base64url-encoded string containing IV + ciphertext.
- */
-export async function encryptMessage(
-  plaintext: string,
-  keyBase64url: string
-): Promise<string> {
-  const keyBuffer = base64urlToBuffer(keyBase64url);
-  const key = await crypto.subtle.importKey(
+export async function importSymmetricKey(base64: string): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
     "raw",
-    keyBuffer,
+    base64ToBuffer(base64),
     { name: "AES-GCM" },
-    false,
-    ["encrypt"]
+    true,
+    ["encrypt", "decrypt"]
   );
+}
 
-  const iv = crypto.getRandomValues(new Uint8Array(12)); // 96-bit IV
+export async function encryptSymmetric(plaintext: string, key: CryptoKey): Promise<string> {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
   const encoded = new TextEncoder().encode(plaintext);
+  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoded);
 
-  const ciphertext = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
-    key,
-    encoded
-  );
-
-  // Prepend IV to ciphertext: [12 bytes IV][ciphertext]
   const combined = new Uint8Array(iv.length + ciphertext.byteLength);
   combined.set(iv, 0);
   combined.set(new Uint8Array(ciphertext), iv.length);
-
-  return bufferToBase64url(combined.buffer);
+  return bufferToBase64(combined.buffer);
 }
 
-/**
- * Decrypt a base64url-encoded blob (IV + ciphertext) with the given key.
- * Returns the plaintext string, or null if decryption fails (wrong key).
- */
-export async function decryptMessage(
-  encryptedBase64url: string,
-  keyBase64url: string
-): Promise<string | null> {
-  try {
-    const combined = new Uint8Array(base64urlToBuffer(encryptedBase64url));
-    const iv = combined.slice(0, 12);
-    const ciphertext = combined.slice(12);
+export async function decryptSymmetric(encryptedBase64: string, key: CryptoKey): Promise<string> {
+  const combined = new Uint8Array(base64ToBuffer(encryptedBase64));
+  const iv = combined.slice(0, 12);
+  const ciphertext = combined.slice(12);
 
-    const keyBuffer = base64urlToBuffer(keyBase64url);
-    const key = await crypto.subtle.importKey(
-      "raw",
-      keyBuffer,
-      { name: "AES-GCM" },
-      false,
-      ["decrypt"]
-    );
+  const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+  return new TextDecoder().decode(decrypted);
+}
 
-    const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
-      key,
-      ciphertext
-    );
+// --- Asymmetric Encryption (RSA-OAEP) ---
 
-    return new TextDecoder().decode(decrypted);
-  } catch {
-    // Wrong key or corrupted data → return null
-    return null;
+export async function generateAsymmetricKeyPair(): Promise<CryptoKeyPair> {
+  return crypto.subtle.generateKey(
+    {
+      name: "RSA-OAEP",
+      modulusLength: 2048,
+      publicExponent: new Uint8Array([1, 0, 1]), // 65537
+      hash: "SHA-256",
+    },
+    true,
+    ["encrypt", "decrypt"]
+  );
+}
+
+export async function exportPublicKey(key: CryptoKey): Promise<string> {
+  const spki = await crypto.subtle.exportKey("spki", key);
+  return bufferToBase64(spki);
+}
+
+export async function importPublicKey(base64: string): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
+    "spki",
+    base64ToBuffer(base64),
+    { name: "RSA-OAEP", hash: "SHA-256" },
+    true,
+    ["encrypt"]
+  );
+}
+
+export async function exportPrivateKey(key: CryptoKey): Promise<string> {
+  const pkcs8 = await crypto.subtle.exportKey("pkcs8", key);
+  return bufferToBase64(pkcs8);
+}
+
+export async function importPrivateKey(base64: string): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
+    "pkcs8",
+    base64ToBuffer(base64),
+    { name: "RSA-OAEP", hash: "SHA-256" },
+    true,
+    ["decrypt"]
+  );
+}
+
+export async function encryptAsymmetric(dataBase64: string, publicKey: CryptoKey): Promise<string> {
+  const data = base64ToBuffer(dataBase64);
+  const ciphertext = await crypto.subtle.encrypt({ name: "RSA-OAEP" }, publicKey, data);
+  return bufferToBase64(ciphertext);
+}
+
+export async function decryptAsymmetric(encryptedBase64: string, privateKey: CryptoKey): Promise<string> {
+  const encryptedFile = base64ToBuffer(encryptedBase64);
+  const decrypted = await crypto.subtle.decrypt({ name: "RSA-OAEP" }, privateKey, encryptedFile);
+  return bufferToBase64(decrypted);
+}
+
+// --- Password-Based Key Derivation (PBKDF2) ---
+
+export async function deriveKeyFromPassword(password: string, saltHex?: string): Promise<{ key: CryptoKey; saltHex: string }> {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(password),
+    { name: "PBKDF2" },
+    false,
+    ["deriveBits", "deriveKey"]
+  );
+
+  let salt: Uint8Array;
+  if (saltHex) {
+    salt = new Uint8Array(hexToBuffer(saltHex));
+  } else {
+    salt = crypto.getRandomValues(new Uint8Array(16));
   }
-}
 
-/**
- * Force-download the encryption key as a .key file.
- */
-export function downloadKeyFile(key: string, filename = "last-message.key") {
-  const content = `# Last Message Encryption Key\n# WARNING: If you lose this key, your message is permanently unrecoverable.\n# Keep this file safe.\n\n${key}\n`;
-  const blob = new Blob([content], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
+  const key = await crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt: salt, iterations: 100000, hash: "SHA-256" },
+    keyMaterial,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  );
 
-// --- Encoding helpers ---
-
-function bufferToBase64url(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (const b of bytes) {
-    binary += String.fromCharCode(b);
-  }
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-function base64urlToBuffer(base64url: string): ArrayBuffer {
-  const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
-  const binary = atob(padded);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes.buffer;
+  return { key, saltHex: bufferToHex(salt.buffer) };
 }

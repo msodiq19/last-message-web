@@ -4,89 +4,46 @@ import "./globals.css";
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "Last Message — A Dead Man's Switch for the Words That Matter",
+  title: "in case — For the things people should hear",
   description:
-    "Write a message. Encrypt it in your browser. If you stop checking in, it delivers itself. Zero-knowledge encryption. No accounts. No logins. Open source.",
+    "Write a private message. Choose your check-in period. If you stop checking in, we'll deliver it securely to the people you choose.",
   keywords: [
-    "dead man's switch",
     "encrypted message",
-    "zero-knowledge encryption",
     "digital legacy",
-    "automated message delivery",
-    "privacy-first",
-    "open source",
-    "AES-256-GCM",
-    "client-side encryption",
-    "send message after death",
-    "dead man's switch app",
+    "dead man's switch",
+    "zero-knowledge encryption",
+    "legacy message",
+    "inactivity trigger",
+    "emotional continuity",
+    "in case app",
   ],
   openGraph: {
-    title: "Last Message — A Dead Man's Switch for the Words That Matter",
+    title: "in case — For the things people should hear, even if you never get the chance to say them.",
     description:
-      "Write a message. Encrypt it. If you stop checking in for 14 days, it delivers itself. Zero-knowledge. No accounts. Open source.",
+      "Write a private message. Choose your check-in period. If you stop checking in, we'll deliver it securely to the people you choose.",
     type: "website",
     url: baseUrl,
-    siteName: "Last Message",
-    images: [
-      {
-        url: `${baseUrl}/opengraph-image`,
-        width: 1200,
-        height: 630,
-        alt: "Last Message — Encrypted Dead Man's Switch",
-      },
-    ],
+    siteName: "in case",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Last Message — A Dead Man's Switch for the Words That Matter",
-    description:
-      "Write a message. Encrypt it. If you stop checking in, it delivers itself. Zero-knowledge encryption. No accounts.",
-    images: [`${baseUrl}/opengraph-image`],
+    title: "in case — For the things people should hear",
+    description: "Write a message. Encrypt it. If you stop checking in, it delivers itself.",
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  alternates: {
-    canonical: baseUrl,
-  },
+  robots: { index: true, follow: true },
+  alternates: { canonical: baseUrl },
 };
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "Last Message",
-  description:
-    "A dead man's switch for encrypted text messages. Zero-knowledge encryption, no accounts, open source.",
-  url: baseUrl,
-  applicationCategory: "SecurityApplication",
-  operatingSystem: "Web",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
       </head>
-      <body className="antialiased" suppressHydrationWarning>
+      <body suppressHydrationWarning>
         {children}
       </body>
     </html>
   );
 }
-

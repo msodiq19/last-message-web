@@ -1,192 +1,165 @@
-/**
- * Security Service for the CyberTwin "Salted Fragment" architecture.
- * Implements Web Crypto API for zero-knowledge key splitting and encryption.
- */
-
-function bufferToHex(buffer: ArrayBuffer | ArrayBufferLike): string {
-    return Array.from(new Uint8Array(buffer))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
-}
-
-function hexToBuffer(hex: string): ArrayBuffer {
-    const bytes = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < hex.length; i += 2) {
-        bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
-    }
-    return bytes.buffer;
-}
+import {
+    generateSymmetricKey,
+    exportSymmetricKey,
+    generateAsymmetricKeyPair,
+    exportPublicKey,
+    exportPrivateKey,
+    encryptSymmetric,
+    decryptSymmetric,
+    encryptAsymmetric,
+    decryptAsymmetric,
+    importPublicKey,
+    importPrivateKey,
+    importSymmetricKey,
+    deriveKeyFromPassword,
+} from "./crypto";
 
 export class SecurityService {
     /**
-     * Generate a new AES-256-GCM Vault Key (VK).
-     * Generates 256 bits (32 bytes) of random values.
+     * 1. SENDER: Lock a new message.
+     * - Generates AES-GCM symmetric key.
+     * - Encrypts the plaintext message payload.
+     * - Generates a Temporary RSA asymmetric keypair.
+     * - Encrypts the AES key using the Temp Public Key.
+     * - Encrypts the Temp Private Key using the Sender's Vault Password (so the sender can unlock it later).
+     * 
+     * Returns:
+     * - encryptedBlob (AES encrypted message)
+     * - temporaryPublicKey (RSA temp public key, Base64)
+     * - temporaryPrivateKeyEncrypted (RSA temp private key encrypted with PBKDF2 Vault Password)
+     * - encryptedSymmetricKey (AES key wrapped by Temp Public Key)
      */
-    static generateVaultKey(): Uint8Array {
-        const keyBytes = new Uint8Array(32);
-        crypto.getRandomValues(keyBytes);
-        return keyBytes;
-    }
+    static async lockMessage(plaintext: string, vaultPassword: string) {
+        // 1. Symmetric encryption of the message
+        const symKey = await generateSymmetricKey();
+        const symKeyBase64 = await exportSymmetricKey(symKey);
+        const encryptedBlob = await encryptSymmetric(plaintext, symKey);
 
-    /**
-     * Split the Vault Key into two 128-bit halves (A and B).
-     */
-    static splitVaultKey(vk: Uint8Array): { fragmentA: Uint8Array; fragmentBHex: string } {
-        if (vk.length !== 32) throw new Error("Vault Key must be 256 bits / 32 bytes");
-        const fragmentA = vk.slice(0, 16);
-        const fragmentB = vk.slice(16, 32);
+        // 2. Asymmetric temporary key generation
+        const { publicKey: tempPubKey, privateKey: tempPrivKey } = await generateAsymmetricKeyPair();
+        const tempPubKeyBase64 = await exportPublicKey(tempPubKey);
+        const tempPrivKeyBase64 = await exportPrivateKey(tempPrivKey);
+
+        // 3. Encrypt symmetric key with Temporary Public Key (Lockbox)
+        const encryptedSymmetricKey = await encryptAsymmetric(symKeyBase64, tempPubKey);
+
+        // 4. Encrypt Temporary Private Key with Sender's Vault Password
+        const { key: vaultDerivedKey, saltHex } = await deriveKeyFromPassword(vaultPassword);
+        const encryptedPrivKeyCiphertext = await encryptSymmetric(tempPrivKeyBase64, vaultDerivedKey);
+        const temporaryPrivateKeyEncrypted = `${saltHex}:${encryptedPrivKeyCiphertext}`;
+
         return {
-            fragmentA,
-            fragmentBHex: bufferToHex(fragmentB.buffer),
+            encryptedBlob,
+            temporaryPublicKey: tempPubKeyBase64,
+            temporaryPrivateKeyEncrypted,
+            encryptedSymmetricKey,
         };
     }
 
     /**
-     * Reconstruct the Vault Key from Fragment A and Fragment B.
+     * 2. SUCCESSOR: Initialize Permanent Keypair.
+     * - Successor enters an Access Password during handshake.
+     * - Generates a Permanent RSA asymmetric keypair.
+     * - Encrypts the Permanent Private Key using the PBKDF2 Access Password.
+     * 
+     * Returns:
+     * - permanentPublicKey (RSA public key, Base64)
+     * - permanentPrivateKeyEncrypted (RSA private key encrypted with PBKDF2 Access Password)
      */
-    static reconstructVaultKey(fragmentA: Uint8Array, fragmentBHex: string): Uint8Array {
-        const fragmentB = new Uint8Array(hexToBuffer(fragmentBHex));
-        if (fragmentA.length !== 16 || fragmentB.length !== 16) {
-            throw new Error("Both fragments must be exactly 128 bits / 16 bytes");
-        }
-        const vk = new Uint8Array(32);
-        vk.set(fragmentA, 0);
-        vk.set(fragmentB, 16);
-        return vk;
+    static async setupSuccessorKeys(accessPassword: string) {
+        const { publicKey, privateKey } = await generateAsymmetricKeyPair();
+        const pubBase64 = await exportPublicKey(publicKey);
+        const privBase64 = await exportPrivateKey(privateKey);
+
+        const { key: passwordDerivedKey, saltHex } = await deriveKeyFromPassword(accessPassword);
+        const encryptedPrivKeyCiphertext = await encryptSymmetric(privBase64, passwordDerivedKey);
+        const permanentPrivateKeyEncrypted = `${saltHex}:${encryptedPrivKeyCiphertext}`;
+
+        return {
+            permanentPublicKey: pubBase64,
+            permanentPrivateKeyEncrypted,
+        };
     }
 
     /**
-     * Derive a Key from the user's secret answer using PBKDF2.
-     * Returns a CryptoKey that can be used for AES-GCM.
+     * 3. SENDER: Complete Handshake.
+     * - Sender wants to issue a Lockbox to a successor who just provided their permanentPublicKey.
+     * - Unlocks Temp Private Key using Vault Password.
+     * - Unwraps Symmetric Key from the temporary encryptedSymmetricKey.
+     * - Re-wraps Symmetric Key using the Successor's Permanent Public Key.
+     * 
+     * Returns:
+     * - newEncryptedSymmetricKey (AES key wrapped by Successor's Permanent Public Key)
      */
-    static async deriveKeyFromAnswer(answer: string, saltHex?: string): Promise<{ key: CryptoKey; saltHex: string }> {
-        const enc = new TextEncoder();
-        const keyMaterial = await crypto.subtle.importKey(
-            "raw",
-            enc.encode(answer),
-            { name: "PBKDF2" },
-            false,
-            ["deriveBits", "deriveKey"]
-        );
+    static async grantAccessToSuccessor(
+        temporaryPrivateKeyEncrypted: string,
+        vaultPassword: string,
+        encryptedSymmetricKeyFallback: string,
+        successorPublicKeyBase64: string
+    ) {
+        // 1. Decrypt Temp Private Key
+        const [saltHex, ciphertext] = temporaryPrivateKeyEncrypted.split(":");
+        const { key: vaultDerivedKey } = await deriveKeyFromPassword(vaultPassword, saltHex);
+        const tempPrivKeyBase64 = await decryptSymmetric(ciphertext, vaultDerivedKey);
+        const tempPrivKey = await importPrivateKey(tempPrivKeyBase64);
 
-        let salt: Uint8Array;
-        if (saltHex) {
-            salt = new Uint8Array(hexToBuffer(saltHex));
-        } else {
-            salt = crypto.getRandomValues(new Uint8Array(16));
-        }
+        // 2. Unwrap Symmetric Key
+        const symKeyBase64 = await decryptAsymmetric(encryptedSymmetricKeyFallback, tempPrivKey);
 
-        const key = await crypto.subtle.deriveKey(
-            {
-                name: "PBKDF2",
-                salt: salt as any,
-                iterations: 100000,
-                hash: "SHA-256",
-            },
-            keyMaterial,
-            { name: "AES-GCM", length: 256 },
-            false,
-            ["encrypt", "decrypt"]
-        );
+        // 3. Re-wrap using Successor's Public Key
+        const successorPubKey = await importPublicKey(successorPublicKeyBase64);
+        const newEncryptedSymmetricKey = await encryptAsymmetric(symKeyBase64, successorPubKey);
 
-        return { key, saltHex: bufferToHex(salt.buffer) };
+        return newEncryptedSymmetricKey;
     }
 
     /**
-     * Encrypt Fragment A using the derived answer key.
-     * Format returned (Hex): [salt (16b)] [iv (12b)] [ciphertext]
+     * 4. SUCCESSOR: Handover Phase (Message Released).
+     * - Successor enters Access Password -> Unlocks Permanent Private Key.
+     * - Successor uses Permanent Private Key -> Unwraps Symmetric Key.
+     * - Successor uses Symmetric Key -> Decrypts Message Blob.
+     * 
+     * Returns:
+     * - decryptedPlainText
      */
-    static async encryptFragmentA(fragmentA: Uint8Array, answer: string): Promise<string> {
-        const { key, saltHex } = await this.deriveKeyFromAnswer(answer);
-        const iv = crypto.getRandomValues(new Uint8Array(12));
+    static async openMessageAsSuccessor(
+        encryptedBlob: string,
+        encryptedSymmetricKey: string,
+        permanentPrivateKeyEncrypted: string,
+        accessPassword: string
+    ) {
+        // 1. Decrypt Permanent Private Key
+        const [saltHex, ciphertext] = permanentPrivateKeyEncrypted.split(":");
+        const { key: passwordDerivedKey } = await deriveKeyFromPassword(accessPassword, saltHex);
+        const permanentPrivKeyBase64 = await decryptSymmetric(ciphertext, passwordDerivedKey);
+        const permanentPrivKey = await importPrivateKey(permanentPrivKeyBase64);
 
-        const ciphertextBuf = await crypto.subtle.encrypt(
-            { name: "AES-GCM", iv },
-            key,
-            fragmentA as any
-        );
+        // 2. Unwrap Symmetric Key
+        const symKeyBase64 = await decryptAsymmetric(encryptedSymmetricKey, permanentPrivKey);
+        const symKey = await importSymmetricKey(symKeyBase64);
 
-        const ivHex = bufferToHex(iv.buffer);
-        const cipherHex = bufferToHex(ciphertextBuf);
-
-        return `${saltHex}${ivHex}${cipherHex}`;
+        // 3. Decrypt Message payload
+        const plaintext = await decryptSymmetric(encryptedBlob, symKey);
+        return plaintext;
     }
 
     /**
-     * Decrypt Fragment A using the answer.
+     * SENDER: Open their own locked message for editing.
      */
-    static async decryptFragmentA(encryptedPayloadHex: string, answer: string): Promise<Uint8Array> {
-        if (encryptedPayloadHex.length < 56 /* 32 for salt + 24 for iv */) {
-            throw new Error("Invalid payload length");
-        }
+    static async openMessageAsSender(
+        encryptedBlob: string,
+        encryptedSymmetricKey: string,
+        temporaryPrivateKeyEncrypted: string,
+        vaultPassword: string
+    ) {
+        const [saltHex, ciphertext] = temporaryPrivateKeyEncrypted.split(":");
+        const { key: vaultDerivedKey } = await deriveKeyFromPassword(vaultPassword, saltHex);
+        const tempPrivKeyBase64 = await decryptSymmetric(ciphertext, vaultDerivedKey);
+        const tempPrivKey = await importPrivateKey(tempPrivKeyBase64);
 
-        const saltHex = encryptedPayloadHex.substring(0, 32);
-        const ivHex = encryptedPayloadHex.substring(32, 56);
-        const cipherHex = encryptedPayloadHex.substring(56);
+        const symKeyBase64 = await decryptAsymmetric(encryptedSymmetricKey, tempPrivKey);
+        const symKey = await importSymmetricKey(symKeyBase64);
 
-        const { key } = await this.deriveKeyFromAnswer(answer, saltHex);
-        const iv = new Uint8Array(hexToBuffer(ivHex));
-        const ciphertext = new Uint8Array(hexToBuffer(cipherHex));
-
-        const decryptedBuf = await crypto.subtle.decrypt(
-            { name: "AES-GCM", iv },
-            key,
-            ciphertext as any
-        );
-
-        return new Uint8Array(decryptedBuf);
-    }
-
-    /**
-     * Encrypt vault content using the complete Vault Key.
-     * Output format: [iv (12b hex)] [ciphertext (hex)]
-     */
-    static async encryptContent(content: string, vk: Uint8Array): Promise<string> {
-        const enc = new TextEncoder();
-        const key = await crypto.subtle.importKey(
-            "raw",
-            vk as any,
-            { name: "AES-GCM" },
-            false,
-            ["encrypt"]
-        );
-
-        const iv = crypto.getRandomValues(new Uint8Array(12));
-        const ciphertextBuf = await crypto.subtle.encrypt(
-            { name: "AES-GCM", iv },
-            key,
-            enc.encode(content) as any
-        );
-
-        return `${bufferToHex(iv.buffer)}${bufferToHex(ciphertextBuf)}`;
-    }
-
-    /**
-     * Decrypt vault content using the complete Vault Key.
-     */
-    static async decryptContent(encryptedContentHex: string, vk: Uint8Array): Promise<string> {
-        if (encryptedContentHex.length < 24) throw new Error("Invalid content length");
-
-        const ivHex = encryptedContentHex.substring(0, 24);
-        const cipherHex = encryptedContentHex.substring(24);
-
-        const key = await crypto.subtle.importKey(
-            "raw",
-            vk as any,
-            { name: "AES-GCM" },
-            false,
-            ["decrypt"]
-        );
-
-        const iv = new Uint8Array(hexToBuffer(ivHex));
-        const ciphertext = new Uint8Array(hexToBuffer(cipherHex));
-
-        const decryptedBuf = await crypto.subtle.decrypt(
-            { name: "AES-GCM", iv },
-            key,
-            ciphertext as any
-        );
-
-        return new TextDecoder().decode(decryptedBuf);
+        return decryptSymmetric(encryptedBlob, symKey);
     }
 }
