@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -22,7 +21,6 @@ import { Logo } from "@/lib/components/Logo";
 import { TrustBadge, TrustRow } from "@/lib/components/TrustBadge";
 
 export default function LandingPage() {
-  const [waitlistEmail, setWaitlistEmail] = useState("");
   return (
     <div style={{ minHeight: "100vh", background: "var(--cream)", fontFamily: "'Inter', sans-serif" }}>
 
@@ -32,10 +30,7 @@ export default function LandingPage() {
         <div style={{ display: "flex", alignItems: "center", gap: 28, fontSize: 14, color: "var(--text-secondary)" }}>
           {([
             ["How it works", "#how-it-works"],
-            ["Why it matters", "#why-it-matters"],
             ["Security", "/security"],
-            ["Stories", "#stories"],
-            ["FAQ", "#faq"],
           ] as [string, string][]).map(([item, href]) => (
             <a key={item} href={href} style={{ textDecoration: "none", color: "inherit", transition: "color 0.15s" }}>{item}</a>
           ))}
@@ -241,25 +236,18 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Waitlist CTA ── */}
+      {/* ── CTA ── */}
       <section style={{ padding: "80px 64px", background: "var(--cream-warm)", borderTop: "1px solid var(--border)" }}>
-        <div style={{ maxWidth: 680, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 48, flexWrap: "wrap" }}>
-          <div>
-            <h2 className="ic-display" style={{ fontSize: "clamp(1.3rem, 2.5vw, 1.7rem)", fontWeight: 500, marginBottom: 10, letterSpacing: "-0.02em" }}>
-              Be the first to protect what matters.
-            </h2>
-            <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 16 }}>
-              Join the waitlist and get early access, product updates,<br />
-              and helpful insights on protecting what matters.
-            </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--text-muted)" }}>
-              <Users size={13} strokeWidth={1.5} />
-              <span>Join others protecting what matters</span>
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <input className="ic-input" type="email" placeholder="Your email address" style={{ width: 220 }} value={waitlistEmail} onChange={(e) => setWaitlistEmail(e.target.value)} />
-            <Link href={`/sign-up${waitlistEmail ? `?email=${encodeURIComponent(waitlistEmail)}` : ""}`} className="ic-btn ic-btn-primary">Join waitlist</Link>
+        <div style={{ maxWidth: 680, margin: "0 auto", textAlign: "center" }}>
+          <h2 className="ic-display" style={{ fontSize: "clamp(1.3rem, 2.5vw, 1.7rem)", fontWeight: 500, marginBottom: 12, letterSpacing: "-0.02em" }}>
+            Protect what matters, starting today.
+          </h2>
+          <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 28 }}>
+            Create your first message in minutes. No credit card required.
+          </p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+            <Link href="/sign-up" className="ic-btn ic-btn-primary">Get started — it's free</Link>
+            <Link href="/login" style={{ fontSize: 14, color: "var(--text-muted)", textDecoration: "none" }}>Already have an account?</Link>
           </div>
         </div>
       </section>
@@ -274,14 +262,14 @@ export default function LandingPage() {
             </p>
           </div>
           {[
-            { heading: "Product", links: ["How it works", "Security", "FAQ", "Stories"] },
-            { heading: "Company", links: ["About us", "Blog", "Careers", "Contact"] },
-            { heading: "Legal", links: ["Privacy", "Terms of Service", "Data Policy"] },
+            { heading: "Product", links: [["How it works", "#how-it-works"], ["Security", "/security"]] },
+            { heading: "Company", links: [["Contact", "mailto:hello@incase.so"]] },
+            { heading: "Legal", links: [["Privacy", "/privacy"], ["Terms of Service", "/terms"]] },
           ].map(({ heading, links }) => (
             <div key={heading}>
               <p style={{ fontWeight: 600, fontSize: 11, marginBottom: 14, color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{heading}</p>
-              {links.map((l) => (
-                <a key={l} href="#" style={{ display: "block", fontSize: 13, color: "var(--text-muted)", textDecoration: "none", marginBottom: 8 }}>{l}</a>
+              {(links as [string, string][]).map(([label, href]) => (
+                <a key={label} href={href} style={{ display: "block", fontSize: 13, color: "var(--text-muted)", textDecoration: "none", marginBottom: 8 }}>{label}</a>
               ))}
             </div>
           ))}

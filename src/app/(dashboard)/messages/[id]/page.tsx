@@ -24,7 +24,6 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
     const message: any = data;
 
     if (!message || message.user_id !== user?.id) {
-        console.error("404 Triggered! message exists:", !!message, "user_id matches:", message?.user_id === user?.id);
         return notFound();
     }
 
@@ -39,8 +38,7 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
                     <h1 style={{ fontSize: 16, fontWeight: 600 }}>Message details</h1>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
-                    <button className="ic-btn ic-btn-ghost ic-btn-sm">Pause timer</button>
-                    <button className="ic-btn ic-btn-secondary ic-btn-sm">Edit message</button>
+                    <Link href="/check-in" className="ic-btn ic-btn-ghost ic-btn-sm">Manage timer</Link>
                 </div>
             </header>
 

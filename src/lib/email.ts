@@ -8,14 +8,7 @@ function getResend(): Resend {
   return _resend;
 }
 
-const FROM_EMAIL = process.env.FROM_EMAIL || "Last Message <onboarding@resend.dev>";
-
-const TRUST_FOOTER = `
----
-We rely on your check-ins, not email delivery.
-Email reminders are a convenience, not a guarantee.
-If reminders fail and you don't check in, the message will be released.
-`.trim();
+const FROM_EMAIL = process.env.FROM_EMAIL || "In Case <onboarding@resend.dev>";
 
 /**
  * Send a check-in reminder to the message creator.
@@ -28,13 +21,17 @@ export async function sendReminderEmail(
     const { error } = await getResend().emails.send({
       from: FROM_EMAIL,
       to,
-      subject: `Last Message: ${daysLeft} day${daysLeft === 1 ? "" : "s"} until your message is released`,
-      text: `Your message will be released in ${daysLeft} day${daysLeft === 1 ? "" : "s"} unless you check in.
+      subject: daysLeft <= 1 ? `Check in - today is the last day` : `Check in - ${daysLeft} days left`,
+      text: `Just a reminder to check in.
 
-Use the check-in link you bookmarked when you created your message.
-If you lost it, there is no way to recover it — the link contains your unique token.
+You have ${daysLeft} day${daysLeft === 1 ? "" : "s"} before your message is automatically delivered to your recipient${daysLeft === 1 ? ". Today is the last day" : ""}.
 
-${TRUST_FOOTER}`,
+Log in to check in:
+https://incase.so/check-in
+
+If you meant for this to happen, you don't need to do anything.
+
+In Case`,
     });
 
     if (error) {
@@ -58,6 +55,46 @@ ${TRUST_FOOTER}`,
 }
 
 /**
+ * Send a handshake invitation to a recipient when a message is created for them.
+ */
+export async function sendHandshakeEmail(
+  to: string,
+  recipientName: string,
+  senderName: string,
+  handshakeUrl: string
+): Promise<{ success: boolean }> {
+  try {
+    const { error } = await getResend().emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: `${senderName} left something for you`,
+      text: `Hi ${recipientName},
+
+${senderName} has written something private and left it with you, to be delivered if they ever can't reach you themselves.
+
+Before that can happen, you need to do one quick thing: set up your personal access. It takes about a minute, and it only needs to happen once.
+
+${handshakeUrl}
+
+You'll create a password during setup. Keep it somewhere safe. It's the only way to open the message if it ever comes to you. We don't store it, so we can't help you recover it.
+
+If you're not sure why you're receiving this, it means ${senderName} trusts you enough to choose you. You don't have to do anything right now, but completing the setup means you'll be ready when it matters.
+
+In Case`,
+    });
+
+    if (error) {
+      console.error("Resend handshake error:", JSON.stringify(error));
+      return { success: false };
+    }
+    return { success: true };
+  } catch (err) {
+    console.error("Resend handshake exception:", err);
+    return { success: false };
+  }
+}
+
+/**
  * Send the release notification to the recipient.
  */
 export async function sendReleaseEmail(
@@ -68,20 +105,17 @@ export async function sendReleaseEmail(
     const { data, error } = await getResend().emails.send({
       from: FROM_EMAIL,
       to,
-      subject: "Someone left you a message",
-      text: `Someone set up a Last Message for you.
+      subject: `You have a message waiting`,
+      text: `Someone left something for you.
 
-Last Message is a dead man's switch. The person who wrote this message
-set it to be delivered to you if they stopped checking in for 14 days.
+A private message was written for you and kept safe until now. The person who wrote it set it to reach you if they went quiet, and they have.
 
-They have not checked in. The message has been released.
+Read it here:
+${readUrl}
 
-Read your message: ${readUrl}
+You'll need the Access Password you created when you accepted this. If you've forgotten it, we're sorry. It was never stored anywhere. That was on purpose.
 
-You will need the encryption key (a .key file) that the sender kept.
-If you don't have it, the message cannot be decrypted.
-
-This is not spam. This is not marketing. Someone chose you.`,
+In Case`,
     });
 
     if (error) {

@@ -4,25 +4,31 @@ import { useState } from "react";
 import { SecurityService } from "@/lib/SecurityService";
 import { Lock, Check } from "lucide-react";
 import { Logo } from "@/lib/components/Logo";
+import { completeHandshake } from "./actions";
 
 export default function HandshakeClient({ token, senderName, recipientName }: { token: string; senderName: string; recipientName: string }) {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [done, setDone] = useState(false);
+    const [error, setError] = useState("");
 
     async function handleAccept(e: React.FormEvent) {
         e.preventDefault();
         setLoading(true);
+        setError("");
         try {
-            // 1. Generate keys client-side and lock Private Key with Access Password
+            // 1. Generate permanent key pair on device, encrypt private key with password
             const { permanentPublicKey, permanentPrivateKeyEncrypted } = await SecurityService.setupSuccessorKeys(password);
 
-            // 2. Transmit to server
-            // await supabase.from('successors').update({ public_key: ..., private_key_enc: ... }).eq('token', token)
-            // await supabase.from('message_recipients').update({ status: 'handshake_complete' })
-
-            await new Promise((r) => setTimeout(r, 1500)); // simulate network
+            // 2. Save to DB + mark handshake complete
+            const result = await completeHandshake(token, permanentPublicKey, permanentPrivateKeyEncrypted);
+            if (!result.success) {
+                setError(result.error || "Something went wrong. Please try again.");
+                return;
+            }
             setDone(true);
+        } catch {
+            setError("Failed to generate keys. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -99,6 +105,9 @@ export default function HandshakeClient({ token, senderName, recipientName }: { 
                         <button type="submit" className="ic-btn ic-btn-primary ic-btn-full ic-btn-lg" disabled={loading || password.length < 6}>
                             {loading ? "Generating keys…" : "Generate keys & Accept"}
                         </button>
+                        {error && (
+                            <p style={{ fontSize: 13, color: "var(--error)", textAlign: "center" }}>{error}</p>
+                        )}
                     </form>
                 </div>
             </div>

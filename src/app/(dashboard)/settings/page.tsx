@@ -1,18 +1,59 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { Lock, Database, Mail, ShieldCheck, Eye, ArrowRight } from "lucide-react";
-import { TrustBadge } from "@/lib/components/TrustBadge";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Lock, Database, Mail, ShieldCheck, Eye, ChevronRight } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 type SettingsTab = "account" | "security" | "notifications" | "privacy";
 
 export default function SettingsPage() {
+    const router = useRouter();
     const [tab, setTab] = useState<SettingsTab>("account");
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [saving, setSaving] = useState(false);
+    const [saveMsg, setSaveMsg] = useState("");
+
+    useEffect(() => {
+        const supabase = createClient();
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            if (!user) return;
+            setEmail(user.email || "");
+            setName(user.user_metadata?.full_name || "");
+        });
+    }, []);
+
+    async function handleSave() {
+        setSaving(true);
+        setSaveMsg("");
+        const supabase = createClient();
+        const { error } = await supabase.auth.updateUser({ data: { full_name: name } });
+        if (!error) {
+            // Also update profiles table
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                await supabase.from("profiles").upsert({ id: user.id, email: user.email!, full_name: name } as any);
+            }
+            setSaveMsg("Saved.");
+        } else {
+            setSaveMsg("Failed to save. Please try again.");
+        }
+        setSaving(false);
+        setTimeout(() => setSaveMsg(""), 3000);
+    }
+
+    async function handleLogout() {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        router.push("/login");
+        router.refresh();
+    }
 
     const tabs: { key: SettingsTab; label: string }[] = [
         { key: "account", label: "Account" },
-        { key: "security", label: "Security & Encryption" },
+        { key: "security", label: "Security" },
         { key: "notifications", label: "Notifications" },
         { key: "privacy", label: "Privacy" },
     ];
@@ -20,7 +61,9 @@ export default function SettingsPage() {
     return (
         <>
             <header className="ic-topbar">
-                <h1 style={{ fontSize: 18, fontWeight: 700 }}>Settings</h1>
+                <div>
+                    <h1 className="ic-page-title">Settings</h1>
+                </div>
             </header>
 
             <div className="ic-page-content" style={{ maxWidth: 680 }}>
@@ -31,10 +74,10 @@ export default function SettingsPage() {
                             key={t.key}
                             onClick={() => setTab(t.key)}
                             style={{
-                                padding: "10px 16px", fontSize: 14, fontWeight: 500,
+                                padding: "10px 16px", fontSize: 13, fontWeight: 500,
                                 background: "transparent", border: "none", cursor: "pointer",
-                                color: tab === t.key ? "var(--forest)" : "var(--text-muted)",
-                                borderBottom: tab === t.key ? "2px solid var(--forest)" : "2px solid transparent",
+                                color: tab === t.key ? "var(--green-deep)" : "var(--text-muted)",
+                                borderBottom: tab === t.key ? "2px solid var(--green-deep)" : "2px solid transparent",
                                 marginBottom: -1, transition: "all 0.15s",
                             }}
                         >
@@ -43,74 +86,105 @@ export default function SettingsPage() {
                     ))}
                 </div>
 
-                {/* Account tab */}
+                {/* Account */}
                 {tab === "account" && (
                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                         <div className="ic-card" style={{ padding: 20 }}>
-                            <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 16 }}>Account</p>
+                            <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 16 }}>Profile</p>
                             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                                <div><label className="ic-label">Full name</label><input className="ic-input" defaultValue="" placeholder="Your name" /></div>
-                                <div><label className="ic-label">Email</label><input className="ic-input" type="email" defaultValue="" disabled style={{ opacity: 0.6 }} /></div>
-                                <button className="ic-btn ic-btn-primary ic-btn-sm" style={{ alignSelf: "flex-start" }}>Save changes</button>
+                                <div>
+                                    <label className="ic-label">Full name</label>
+                                    <input
+                                        className="ic-input"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        placeholder="Your name"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="ic-label">Email</label>
+                                    <input
+                                        className="ic-input"
+                                        type="email"
+                                        value={email}
+                                        disabled
+                                        style={{ opacity: 0.6 }}
+                                    />
+                                    <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
+                                        Email cannot be changed here.
+                                    </p>
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                    <button
+                                        onClick={handleSave}
+                                        disabled={saving}
+                                        className="ic-btn ic-btn-primary ic-btn-sm"
+                                    >
+                                        {saving ? "Saving…" : "Save changes"}
+                                    </button>
+                                    {saveMsg && (
+                                        <span style={{ fontSize: 13, color: saveMsg === "Saved." ? "var(--success)" : "var(--error)" }}>
+                                            {saveMsg}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                         <div className="ic-card" style={{ padding: 20 }}>
-                            <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>Help &amp; Support</p>
-                            <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 12 }}>How to contact us</p>
-                            <Link href="/help" className="ic-btn ic-btn-secondary ic-btn-sm">Get help</Link>
-                        </div>
-                        <div className="ic-card" style={{ padding: 20 }}>
-                            <button className="ic-btn ic-btn-ghost ic-btn-sm" style={{ color: "var(--text-muted)" }}>Log out</button>
+                            <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 12 }}>Account actions</p>
+                            <button
+                                onClick={handleLogout}
+                                className="ic-btn ic-btn-ghost ic-btn-sm"
+                                style={{ color: "var(--error)" }}
+                            >
+                                Log out
+                            </button>
                         </div>
                     </div>
                 )}
 
-                {/* Security tab */}
+                {/* Security */}
                 {tab === "security" && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                        <div className="ic-card" style={{ padding: 20, borderLeft: "3px solid var(--forest)" }}>
-                            <p style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>Your privacy is built in</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        <div className="ic-card" style={{ padding: 16, borderLeft: "3px solid var(--green-deep)" }}>
+                            <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>Your privacy is built in</p>
                             <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
                                 We only put data on our servers that you and your recipients can read.
                             </p>
                         </div>
                         {[
-                            { icon: <Lock size={16} strokeWidth={1.5} color="var(--green-deep)" />, label: "Encryption", sublabel: "End-to-end · Client-side", action: "›" },
-                            { icon: <Database size={16} strokeWidth={1.5} color="var(--green-deep)" />, label: "Data storage", sublabel: "Zero-knowledge · Encrypted at rest", action: "›" },
-                            { icon: <Mail size={16} strokeWidth={1.5} color="var(--green-deep)" />, label: "Delivery protocol", sublabel: "Two-factor auth · Expiring access", action: "›" },
-                            { icon: <ShieldCheck size={16} strokeWidth={1.5} color="var(--green-deep)" />, label: "Account security", sublabel: "Two-factor auth · Login alerts", action: "›" },
-                            { icon: <Eye size={16} strokeWidth={1.5} color="var(--green-deep)" />, label: "Privacy", sublabel: "Data policy · Your rights", action: "›" },
-                        ].map(({ icon, label, sublabel, action }) => (
-                            <div key={label} className="ic-card ic-settings-row" style={{ padding: "14px 16px" }}>
+                            { icon: <Lock size={15} strokeWidth={1.5} color="var(--green-deep)" />, label: "Encryption", sublabel: "End-to-end · Client-side" },
+                            { icon: <Database size={15} strokeWidth={1.5} color="var(--green-deep)" />, label: "Data storage", sublabel: "Zero-knowledge · Encrypted at rest" },
+                            { icon: <Mail size={15} strokeWidth={1.5} color="var(--green-deep)" />, label: "Delivery protocol", sublabel: "Secure link · Expiring access" },
+                            { icon: <ShieldCheck size={15} strokeWidth={1.5} color="var(--green-deep)" />, label: "Account security", sublabel: "Auth protected · Session managed" },
+                            { icon: <Eye size={15} strokeWidth={1.5} color="var(--green-deep)" />, label: "Privacy", sublabel: "Data policy · Your rights" },
+                        ].map(({ icon, label, sublabel }) => (
+                            <Link key={label} href="/security" className="ic-card ic-settings-row" style={{ padding: "12px 16px", textDecoration: "none" }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                                    <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: "50%", background: "rgba(22,60,52,0.07)" }}>{icon}</div>
+                                    <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, borderRadius: "50%", background: "rgba(22,60,52,0.07)" }}>
+                                        {icon}
+                                    </div>
                                     <div>
-                                        <p style={{ fontWeight: 600, fontSize: 14 }}>{label}</p>
+                                        <p style={{ fontWeight: 500, fontSize: 14 }}>{label}</p>
                                         <p style={{ fontSize: 12, color: "var(--text-muted)" }}>{sublabel}</p>
                                     </div>
                                 </div>
-                                <span style={{ color: "var(--text-muted)", fontSize: 18 }}>{action}</span>
-                            </div>
-                        ))}
-                        <div className="ic-card" style={{ padding: 16, background: "var(--cream-warm)" }}>
-                            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Your privacy is everything</p>
-                            <p style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
-                                We don&apos;t store your messages, and your recipients will never access your messages or keys on our servers.
-                            </p>
-                            <Link href="/security" style={{ fontSize: 13, color: "var(--forest)", textDecoration: "none", marginTop: 8, display: "block" }}>
-                                Learn more about our security architecture
+                                <ChevronRight size={14} strokeWidth={1.75} color="var(--text-muted)" />
                             </Link>
-                        </div>
+                        ))}
+                        <Link href="/security" style={{ fontSize: 13, color: "var(--green-deep)", textDecoration: "none", marginTop: 4 }}>
+                            Read the full security architecture →
+                        </Link>
                     </div>
                 )}
 
-                {/* Notifications tab */}
+                {/* Notifications */}
                 {tab === "notifications" && (
                     <div className="ic-card" style={{ padding: 20 }}>
                         <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 16 }}>Notifications &amp; alerts</p>
                         <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
                             {[
-                                { label: "Email reminders", sublabel: "Sent to your email" },
+                                { label: "Email reminders", sublabel: "Sent to your email before check-in is due" },
                                 { label: "Push notifications", sublabel: "Sent to this device" },
                             ].map(({ label, sublabel }) => (
                                 <div key={label} className="ic-settings-row">
@@ -128,16 +202,16 @@ export default function SettingsPage() {
                     </div>
                 )}
 
-                {/* Privacy tab */}
+                {/* Privacy */}
                 {tab === "privacy" && (
                     <div className="ic-card" style={{ padding: 20 }}>
                         <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 8 }}>Privacy</p>
                         <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16, lineHeight: 1.6 }}>
-                            Your privacy is our priority. We abide by the following, incidents, and safe policies.
+                            Your messages are encrypted on your device before they reach our servers.
+                            We cannot read them. Your privacy is structural, not a promise.
                         </p>
                         <div style={{ display: "flex", gap: 10 }}>
-                            <Link href="/privacy" className="ic-btn ic-btn-secondary ic-btn-sm">View privacy policy</Link>
-                            <Link href="/data" className="ic-btn ic-btn-secondary ic-btn-sm">Download my data</Link>
+                            <Link href="/security" className="ic-btn ic-btn-secondary ic-btn-sm">Security architecture</Link>
                         </div>
                     </div>
                 )}

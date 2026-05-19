@@ -46,14 +46,15 @@ export default async function DashboardPage() {
     const hasMessages = messages.length > 0;
 
     const activeMessages = messages.filter((m) => m.status === "active");
-    const soonestDue = activeMessages.length > 0
-        ? activeMessages.reduce((a, b) => new Date(a.last_checkin) < new Date(b.last_checkin) ? a : b)
-        : null;
+    // Find soonest-due: smallest daysLeft until next check-in
+    const withDue = activeMessages.map((m) => {
+        const nextDue = new Date(new Date(m.last_checkin).getTime() + (m.release_after || 14) * 86400000);
+        return { ...m, nextDue, daysLeft: daysUntil(nextDue.toISOString()) };
+    }).sort((a, b) => a.daysLeft - b.daysLeft);
+    const soonestDue = withDue[0] ?? null;
 
-    const nextCheckinDate = soonestDue
-        ? new Date(new Date(soonestDue.last_checkin).getTime() + ((soonestDue.release_after || 14) * 24 * 60 * 60 * 1000))
-        : null;
-    const daysLeft = nextCheckinDate ? daysUntil(nextCheckinDate.toISOString()) : null;
+    const nextCheckinDate = soonestDue ? soonestDue.nextDue : null;
+    const daysLeft = soonestDue ? soonestDue.daysLeft : null;
     const totalDays = soonestDue?.release_after || 14;
     const ringProgress = daysLeft !== null ? Math.min(daysLeft / totalDays, 1) : 0;
 
@@ -127,7 +128,7 @@ export default async function DashboardPage() {
                                                     </span>
                                                     <span className={`ic-badge ic-badge-${msg.status}`} style={{ flexShrink: 0, fontSize: 11 }}>
                                                         <span className={`ic-dot ic-dot-${msg.status}`} />
-                                                        {msg.status === "active" ? "Active" : msg.status === "paused" ? "Paused" : "Released"}
+                                                        {msg.status === "active" ? "Active" : "Released"}
                                                     </span>
                                                 </div>
                                                 <p style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 6 }}>

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { sendHandshakeEmail } from "@/lib/email";
 
 export async function createLockedMessage(payload: {
     encryptedBlob: string;
@@ -59,13 +60,24 @@ export async function createLockedMessage(payload: {
         }
 
         // Insert Message Recipient Lockbox
+        const handshakeToken = crypto.randomUUID().replace(/-/g, "");
         await supabase.from("message_recipients").insert({
             message_id,
             successor_id: successorId,
             encrypted_key: payload.encryptedSymmetricKey,
-            handshake_token: crypto.randomUUID().slice(0, 16),
+            handshake_token: handshakeToken,
             status: "pending"
         } as any);
+
+        // Send handshake email to recipient
+        const senderName = user.user_metadata?.full_name || user.email!.split("@")[0];
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://incase.so";
+        await sendHandshakeEmail(
+            rec.email,
+            rec.name,
+            senderName,
+            `${appUrl}/handshake/${handshakeToken}`
+        );
     }
 
     // 4. Log Activity

@@ -37,7 +37,8 @@ export default function ReadClient({
             );
             setPlaintext(decrypted);
 
-            // In production, trigger an api call to mark message_recipients as 'read'
+            // Mark as read
+            fetch(`/api/messages/${messageId}/read`, { method: "POST" }).catch(() => {});
         } catch (err: any) {
             setError("Incorrect Access Password or corrupted payload. We cannot recover your password.");
         } finally {

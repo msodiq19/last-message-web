@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import HandshakeClient from "./HandshakeClient";
 
-export default async function HandshakePage({ params }: { params: { token: string } }) {
+export default async function HandshakePage({ params }: { params: Promise<{ token: string }> }) {
+    const { token } = await params;
     const supabase = await createClient();
 
     const { data: recipient } = await supabase
@@ -12,7 +13,7 @@ export default async function HandshakePage({ params }: { params: { token: strin
       messages ( sender_email ),
       successors ( name, email )
     `)
-        .eq("handshake_token", params.token)
+        .eq("handshake_token", token)
         .single();
 
     if (!recipient || recipient.status !== "pending") {
@@ -31,5 +32,5 @@ export default async function HandshakePage({ params }: { params: { token: strin
     const senderEmail = recipient.messages?.sender_email ?? "Someone";
     const recipientName = recipient.successors?.name ?? "Recipient";
 
-    return <HandshakeClient token={params.token} senderName={senderEmail.split("@")[0]} recipientName={recipientName} />;
+    return <HandshakeClient token={token} senderName={senderEmail.split("@")[0]} recipientName={recipientName} />;
 }
