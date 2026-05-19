@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { Users, Plus } from "lucide-react";
 
 export default async function RecipientsPage() {
     const supabase = await createClient();
@@ -45,7 +46,7 @@ export default async function RecipientsPage() {
                 {recipients.length === 0 ? (
                     <div className="ic-card" style={{ maxWidth: 420, margin: "60px auto" }}>
                         <div className="ic-empty">
-                            <div style={{ fontSize: 48 }}>👤</div>
+                            <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 72, height: 72, borderRadius: "50%", background: "rgba(22,60,52,0.07)", marginBottom: 8 }}><Users size={28} strokeWidth={1.25} color="var(--green-deep)" /></div>
                             <h2 className="ic-empty-title">No recipients yet</h2>
                             <p className="ic-empty-desc">Recipients are added when you create a message.</p>
                             <Link href="/messages/new" className="ic-btn ic-btn-primary">Write a message</Link>

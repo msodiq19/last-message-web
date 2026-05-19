@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft, Lock } from "lucide-react";
+import { TrustBadge } from "@/lib/components/TrustBadge";
 
 export default async function MessageDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -33,7 +35,7 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
         <>
             <header className="ic-topbar">
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <Link href="/messages" className="ic-btn ic-btn-ghost ic-btn-sm" style={{ padding: "6px 8px" }}>←</Link>
+                    <Link href="/messages" className="ic-btn ic-btn-ghost ic-btn-sm" style={{ padding: "6px 8px" }}><ArrowLeft size={14} strokeWidth={1.75} /></Link>
                     <h1 style={{ fontSize: 16, fontWeight: 600 }}>Message details</h1>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
@@ -95,7 +97,7 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
                 <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Message Privacy</h3>
                 <div className="ic-card" style={{ padding: 16, background: "var(--cream-warm)" }}>
                     <div style={{ display: "flex", gap: 12 }}>
-                        <span style={{ fontSize: 24 }}>🔒</span>
+                        <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: "50%", background: "rgba(22,60,52,0.07)", flexShrink: 0, marginTop: 2 }}><Lock size={16} strokeWidth={1.5} color="var(--green-deep)" /></div>
                         <div>
                             <p style={{ fontWeight: 600, fontSize: 14 }}>End-to-end Encrypted</p>
                             <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4, lineHeight: 1.5 }}>

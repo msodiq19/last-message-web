@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Logo } from "@/lib/components/Logo";
+import { Mail, Check, Circle } from "lucide-react";
 
 export default function SignUpPage() {
     const router = useRouter();
@@ -54,19 +56,20 @@ export default function SignUpPage() {
             <div className="ic-auth-page">
                 <div className="ic-auth-panel">
                     <div className="ic-auth-logo">
-                        <div className="ic-auth-logo-mark">✉</div>
-                        <span style={{ fontWeight: 600, fontSize: 16 }}>in case</span>
+                        <Logo href="/" size="sm" />
                     </div>
                     <div className="ic-auth-card" style={{ textAlign: "center" }}>
-                        <div style={{ fontSize: 48, marginBottom: 16 }}>📬</div>
+                        <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 64, height: 64, borderRadius: "50%", background: "rgba(22,60,52,0.08)", marginBottom: 20 }}>
+                            <Mail size={26} strokeWidth={1.25} color="var(--green-deep)" />
+                        </div>
                         <h1 className="ic-auth-title">Check your email</h1>
                         <p className="ic-auth-subtitle">
                             We&apos;ve sent a verification link to <strong>{email}</strong>.
                         </p>
                         <ul style={{ textAlign: "left", fontSize: 13, color: "var(--text-secondary)", listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
-                            {["Open the email from 'in case'", "Click the verification link", "Return here to continue"].map((step, i) => (
+                            {["Open the email from 'In Case'", "Click the verification link", "Return here to continue"].map((step, i) => (
                                 <li key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <span style={{ color: "var(--success)" }}>✓</span> {step}
+                                    <Check size={13} strokeWidth={2} color="var(--success)" /> {step}
                                 </li>
                             ))}
                         </ul>
@@ -87,8 +90,7 @@ export default function SignUpPage() {
         <div className="ic-auth-page">
             <div className="ic-auth-panel">
                 <div className="ic-auth-logo">
-                    <div className="ic-auth-logo-mark">✉</div>
-                    <span style={{ fontWeight: 600, fontSize: 16 }}>in case</span>
+                    <Logo href="/" size="sm" />
                 </div>
 
                 <div className="ic-auth-card">
@@ -127,7 +129,10 @@ export default function SignUpPage() {
                                         { label: "One special character", ok: passwordChecks.special },
                                     ].map(({ label, ok }) => (
                                         <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-                                            <span style={{ color: ok ? "var(--success)" : "var(--text-muted)" }}>{ok ? "✓" : "○"}</span>
+                                            {ok
+                                                ? <Check size={12} strokeWidth={2} color="var(--success)" />
+                                                : <Circle size={12} strokeWidth={1.5} color="var(--text-muted)" />
+                                            }
                                             <span style={{ color: ok ? "var(--success)" : "var(--text-muted)" }}>{label}</span>
                                         </div>
                                     ))}
@@ -148,13 +153,13 @@ export default function SignUpPage() {
 
                     <p style={{ textAlign: "center", fontSize: 13, color: "var(--text-muted)", marginTop: 20 }}>
                         Already have an account?{" "}
-                        <Link href="/login" style={{ color: "var(--forest)", fontWeight: 500, textDecoration: "none" }}>Log in</Link>
+                        <Link href="/login" style={{ color: "var(--green-deep)", fontWeight: 500, textDecoration: "none" }}>Log in</Link>
                     </p>
                     <p style={{ textAlign: "center", fontSize: 11, color: "var(--text-muted)", marginTop: 12, lineHeight: 1.5 }}>
                         By continuing, you agree to our{" "}
-                        <Link href="/terms" style={{ color: "var(--forest-muted)", textDecoration: "none" }}>Terms</Link>{" "}
+                        <Link href="/terms" style={{ color: "var(--green-deep)", textDecoration: "none" }}>Terms</Link>{" "}
                         &amp;{" "}
-                        <Link href="/privacy" style={{ color: "var(--forest-muted)", textDecoration: "none" }}>Privacy Policy</Link>.
+                        <Link href="/privacy" style={{ color: "var(--green-deep)", textDecoration: "none" }}>Privacy Policy</Link>.
                     </p>
                 </div>
             </div>

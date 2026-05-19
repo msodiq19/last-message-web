@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <circle cx="32" cy="32" r="30" fill="#163C34"/>
+  <circle cx="32" cy="32" r="28" fill="none" stroke="#B79D72" stroke-width="1.4"/>
+  <!-- Center stem -->
+  <path d="M32 46 L32 26" stroke="#B79D72" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- Left leaf -->
+  <path d="M32 38 C27 35 23 30 24 24 C25 24 30 25 32 32" fill="#B79D72" opacity="0.9"/>
+  <!-- Right leaf -->
+  <path d="M32 34 C37 31 41 26 40 20 C39 20 34 21 32 28" fill="#B79D72" opacity="0.9"/>
+  <!-- Top center leaf -->
+  <path d="M32 30 C29 23 30 18 32 15 C34 18 35 23 32 30" fill="#B79D72"/>
+</svg>

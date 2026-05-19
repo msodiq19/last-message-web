@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { SecurityService } from "@/lib/SecurityService";
+import { Lock, Check } from "lucide-react";
+import { Logo } from "@/lib/components/Logo";
 
 export default function HandshakeClient({ token, senderName, recipientName }: { token: string; senderName: string; recipientName: string }) {
     const [password, setPassword] = useState("");
@@ -31,7 +33,7 @@ export default function HandshakeClient({ token, senderName, recipientName }: { 
             <div className="ic-auth-page">
                 <div className="ic-auth-panel">
                     <div className="ic-auth-card" style={{ textAlign: "center" }}>
-                        <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
+                        <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 72, height: 72, borderRadius: "50%", background: "rgba(22,60,52,0.08)", marginBottom: 20 }}><Lock size={28} strokeWidth={1.25} color="var(--green-deep)" /></div>
                         <h1 className="ic-auth-title">Connection secured</h1>
                         <p className="ic-auth-subtitle">
                             You're officially a trusted recipient for {senderName}.<br />
@@ -54,7 +56,7 @@ export default function HandshakeClient({ token, senderName, recipientName }: { 
         <div className="ic-auth-page">
             <div className="ic-auth-panel">
                 <div className="ic-auth-logo">
-                    <div className="ic-auth-logo-mark">✉</div>
+                    <Logo href="/" size="sm" />
                     <span style={{ fontWeight: 600, fontSize: 16 }}>in case</span>
                 </div>
 
@@ -89,7 +91,7 @@ export default function HandshakeClient({ token, senderName, recipientName }: { 
                         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4, marginBottom: 8 }}>
                             {["Client-side key generation automatically handled", "We never see your password or private key"].map((item) => (
                                 <div key={item} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--text-secondary)" }}>
-                                    <span style={{ color: "var(--success)" }}>✓</span> {item}
+                                    <Check size={13} strokeWidth={2} color="var(--success)" /> {item}
                                 </div>
                             ))}
                         </div>

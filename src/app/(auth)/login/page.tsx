@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Logo } from "@/lib/components/Logo";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -40,8 +41,7 @@ export default function LoginPage() {
             <div className="ic-auth-panel">
                 {/* Logo */}
                 <div className="ic-auth-logo">
-                    <div className="ic-auth-logo-mark">✉</div>
-                    <span style={{ fontWeight: 600, fontSize: 16, color: "var(--text-primary)" }}>in case</span>
+                    <Logo href="/" size="sm" />
                 </div>
 
                 <div className="ic-auth-card">
@@ -83,7 +83,7 @@ export default function LoginPage() {
                         <div>
                             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                                 <label className="ic-label" htmlFor="password" style={{ marginBottom: 0 }}>Password</label>
-                                <Link href="/forgot-password" style={{ fontSize: 12, color: "var(--forest)", textDecoration: "none" }}>
+                                <Link href="/forgot-password" style={{ fontSize: 12, color: "var(--green-deep)", textDecoration: "none" }}>
                                     Forgot password?
                                 </Link>
                             </div>
@@ -124,7 +124,7 @@ export default function LoginPage() {
 
                     <p style={{ textAlign: "center", fontSize: 13, color: "var(--text-muted)", marginTop: 20 }}>
                         Don&apos;t have an account?{" "}
-                        <Link href="/sign-up" style={{ color: "var(--forest)", fontWeight: 500, textDecoration: "none" }}>
+                        <Link href="/sign-up" style={{ color: "var(--green-deep)", fontWeight: 500, textDecoration: "none" }}>
                             Create one
                         </Link>
                     </p>

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { Mail, Plus, ArrowRight } from "lucide-react";
 
 function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -34,7 +35,7 @@ export default async function MessagesPage() {
                     <h1 style={{ fontSize: 18, fontWeight: 700 }}>Messages</h1>
                 </div>
                 <Link href="/messages/new" className="ic-btn ic-btn-primary ic-btn-sm" style={{ gap: 6 }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                    <Plus size={13} strokeWidth={2.5} />
                     New message
                 </Link>
             </header>
@@ -43,11 +44,11 @@ export default async function MessagesPage() {
                 {!hasMessages ? (
                     <div className="ic-card" style={{ maxWidth: 420, margin: "60px auto" }}>
                         <div className="ic-empty">
-                            <div style={{ fontSize: 48 }}>✉️</div>
+                            <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 72, height: 72, borderRadius: "50%", background: "rgba(22,60,52,0.07)", marginBottom: 8 }}><Mail size={28} strokeWidth={1.25} color="var(--green-deep)" /></div>
                             <h2 className="ic-empty-title">No messages yet</h2>
                             <p className="ic-empty-desc">Write your first message for the people who matter.</p>
-                            <Link href="/messages/new" className="ic-btn ic-btn-primary">
-                                + New message
+                            <Link href="/messages/new" className="ic-btn ic-btn-primary" style={{ gap: 6 }}>
+                                <Plus size={13} strokeWidth={2.5} /> New message
                             </Link>
                         </div>
                     </div>

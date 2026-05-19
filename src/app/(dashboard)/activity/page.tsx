@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { CheckCircle2, Mail, Paperclip, UserPlus } from "lucide-react";
 
 type Tab = "all" | "checkins" | "reminders" | "deliveries";
 
 const MOCK_ACTIVITY = [
-    { id: "1", type: "checkin", icon: "✅", label: "Check-in completed", detail: "May 12, 2024 · 1:41 AM", color: "var(--success-soft)", iconColor: "var(--success)" },
-    { id: "2", type: "reminder", icon: "✉", label: "Reminder sent", detail: "Email reminder · To: Alex's Mom", color: "var(--warning-soft)", iconColor: "var(--warning)" },
-    { id: "3", type: "reminder", icon: "✉", label: "Reminder sent (Push)", detail: "May 10, 2024 · 9:30 AM", color: "var(--warning-soft)", iconColor: "var(--warning)" },
-    { id: "4", type: "other", icon: "📎", label: "Attachment uploaded", detail: "Alex's Mom", color: "var(--cream-warm)", iconColor: "var(--text-muted)" },
-    { id: "5", type: "other", icon: "👤", label: "Recipient added", detail: "Alex's Mom", color: "var(--cream-warm)", iconColor: "var(--text-muted)" },
-    { id: "6", type: "checkin", icon: "✅", label: "Check-in completed", detail: "Nov 15, 2024 · 6:12 AM", color: "var(--success-soft)", iconColor: "var(--success)" },
-    { id: "7", type: "other", icon: "✉️", label: "Message created", detail: "May 8, 2024 · 4:22 PM", color: "var(--cream-warm)", iconColor: "var(--text-muted)" },
+    { id: "1", type: "checkin", icon: <CheckCircle2 size={15} strokeWidth={1.5} />, label: "Check-in completed", detail: "May 12, 2024 · 1:41 AM", color: "var(--success-soft)", iconColor: "var(--success)" },
+    { id: "2", type: "reminder", icon: <Mail size={15} strokeWidth={1.5} />, label: "Reminder sent", detail: "Email reminder · To: Alex's Mom", color: "var(--warning-soft)", iconColor: "var(--warning)" },
+    { id: "3", type: "reminder", icon: <Mail size={15} strokeWidth={1.5} />, label: "Reminder sent (Push)", detail: "May 10, 2024 · 9:30 AM", color: "var(--warning-soft)", iconColor: "var(--warning)" },
+    { id: "4", type: "other", icon: <Paperclip size={15} strokeWidth={1.5} />, label: "Attachment uploaded", detail: "Alex's Mom", color: "var(--cream-warm)", iconColor: "var(--text-muted)" },
+    { id: "5", type: "other", icon: <UserPlus size={15} strokeWidth={1.5} />, label: "Recipient added", detail: "Alex's Mom", color: "var(--cream-warm)", iconColor: "var(--text-muted)" },
+    { id: "6", type: "checkin", icon: <CheckCircle2 size={15} strokeWidth={1.5} />, label: "Check-in completed", detail: "Nov 15, 2024 · 6:12 AM", color: "var(--success-soft)", iconColor: "var(--success)" },
+    { id: "7", type: "other", icon: <Mail size={15} strokeWidth={1.5} />, label: "Message created", detail: "May 8, 2024 · 4:22 PM", color: "var(--cream-warm)", iconColor: "var(--text-muted)" },
 ];
 
 export default function ActivityPage() {

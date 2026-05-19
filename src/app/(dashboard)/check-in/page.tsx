@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { CheckCircle2 } from "lucide-react";
 
 function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + " · " +
@@ -39,7 +40,9 @@ export default async function CheckinPage() {
                 {!soonest ? (
                     <div className="ic-card">
                         <div className="ic-empty">
-                            <div style={{ fontSize: 48 }}>✅</div>
+                            <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 72, height: 72, borderRadius: "50%", background: "var(--success-soft)", marginBottom: 8 }}>
+                                <CheckCircle2 size={32} strokeWidth={1.25} color="var(--success)" />
+                            </div>
                             <h2 className="ic-empty-title">You&apos;re all set</h2>
                             <p className="ic-empty-desc">No active messages require a check-in right now.</p>
                         </div>
@@ -48,8 +51,8 @@ export default async function CheckinPage() {
                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                         {/* Main check-in card */}
                         <div className="ic-card" style={{ padding: 28, textAlign: "center" }}>
-                            <div style={{ margin: "0 auto 16px", width: 80, height: 80, borderRadius: "50%", background: "var(--success-soft)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36 }}>
-                                ✅
+                            <div style={{ margin: "0 auto 20px", width: 80, height: 80, borderRadius: "50%", background: "var(--success-soft)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <CheckCircle2 size={32} strokeWidth={1.25} color="var(--success)" />
                             </div>
                             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>You&apos;re all set</h2>
                             <p style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 20 }}>

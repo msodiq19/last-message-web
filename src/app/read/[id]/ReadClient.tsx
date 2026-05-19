@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { SecurityService } from "@/lib/SecurityService";
+import { Check } from "lucide-react";
+import { Logo } from "@/lib/components/Logo";
 
 export default function ReadClient({
     messageId,
@@ -48,7 +50,7 @@ export default function ReadClient({
             <div className="ic-auth-page" style={{ paddingTop: 60, paddingBottom: 60 }}>
                 <div style={{ maxWidth: 680, width: "100%", margin: "0 auto", padding: "0 24px" }}>
                     <div className="ic-auth-logo" style={{ marginBottom: 40 }}>
-                        <div className="ic-auth-logo-mark">✉</div>
+                        <Logo href="/" size="sm" />
                         <span style={{ fontWeight: 600, fontSize: 16 }}>in case</span>
                     </div>
 
@@ -73,7 +75,7 @@ export default function ReadClient({
         <div className="ic-auth-page">
             <div className="ic-auth-panel" style={{ maxWidth: 460 }}>
                 <div className="ic-auth-logo">
-                    <div className="ic-auth-logo-mark">✉</div>
+                    <Logo href="/" size="sm" />
                     <span style={{ fontWeight: 600, fontSize: 16 }}>in case</span>
                 </div>
 
@@ -110,7 +112,7 @@ export default function ReadClient({
                     <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 24 }}>
                         {["Message is decrypted entirely on your device", "The server cannot read the message"].map((item) => (
                             <div key={item} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--text-secondary)" }}>
-                                <span style={{ color: "var(--success)" }}>✓</span> {item}
+                                <Check size={13} strokeWidth={2} color="var(--success)" /> {item}
                             </div>
                         ))}
                     </div>

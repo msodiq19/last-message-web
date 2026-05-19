@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Lock, Database, Mail, ShieldCheck, Eye, ArrowRight } from "lucide-react";
+import { TrustBadge } from "@/lib/components/TrustBadge";
 
 type SettingsTab = "account" | "security" | "notifications" | "privacy";
 
@@ -73,15 +75,15 @@ export default function SettingsPage() {
                             </p>
                         </div>
                         {[
-                            { icon: "🔒", label: "Encryption", sublabel: "End-to-end · Client-side", action: "›" },
-                            { icon: "🗄️", label: "Data storage", sublabel: "Zero-knowledge · Encrypted at rest", action: "›" },
-                            { icon: "✉️", label: "Delivery protocol", sublabel: "Two-factor auth · Expiring access", action: "›" },
-                            { icon: "🛡️", label: "Account security", sublabel: "Two-factor auth · Login alerts", action: "›" },
-                            { icon: "👁️", label: "Privacy", sublabel: "Data policy · Your rights", action: "›" },
+                            { icon: <Lock size={16} strokeWidth={1.5} color="var(--green-deep)" />, label: "Encryption", sublabel: "End-to-end · Client-side", action: "›" },
+                            { icon: <Database size={16} strokeWidth={1.5} color="var(--green-deep)" />, label: "Data storage", sublabel: "Zero-knowledge · Encrypted at rest", action: "›" },
+                            { icon: <Mail size={16} strokeWidth={1.5} color="var(--green-deep)" />, label: "Delivery protocol", sublabel: "Two-factor auth · Expiring access", action: "›" },
+                            { icon: <ShieldCheck size={16} strokeWidth={1.5} color="var(--green-deep)" />, label: "Account security", sublabel: "Two-factor auth · Login alerts", action: "›" },
+                            { icon: <Eye size={16} strokeWidth={1.5} color="var(--green-deep)" />, label: "Privacy", sublabel: "Data policy · Your rights", action: "›" },
                         ].map(({ icon, label, sublabel, action }) => (
                             <div key={label} className="ic-card ic-settings-row" style={{ padding: "14px 16px" }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                                    <span style={{ fontSize: 20 }}>{icon}</span>
+                                    <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: "50%", background: "rgba(22,60,52,0.07)" }}>{icon}</div>
                                     <div>
                                         <p style={{ fontWeight: 600, fontSize: 14 }}>{label}</p>
                                         <p style={{ fontSize: 12, color: "var(--text-muted)" }}>{sublabel}</p>
@@ -96,7 +98,7 @@ export default function SettingsPage() {
                                 We don&apos;t store your messages, and your recipients will never access your messages or keys on our servers.
                             </p>
                             <Link href="/security" style={{ fontSize: 13, color: "var(--forest)", textDecoration: "none", marginTop: 8, display: "block" }}>
-                                Learn more about our security practices →
+                                Learn more about our security architecture
                             </Link>
                         </div>
                     </div>
