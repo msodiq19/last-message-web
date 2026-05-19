@@ -10,6 +10,7 @@ import {
     Activity,
     Settings,
     LogOut,
+    MessageCircleHeart,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/lib/components/Logo";
@@ -73,6 +74,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <LogOut size={15} strokeWidth={1.5} />
                         Log out
                     </button>
+                    <a
+                        href="mailto:hello@incase.so?subject=In Case Feedback"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="ic-nav-item"
+                        style={{ border: "none", cursor: "pointer", color: "var(--text-muted)" }}
+                    >
+                        <MessageCircleHeart size={15} strokeWidth={1.5} />
+                        Give feedback
+                    </a>
                 </div>
             </aside>
 

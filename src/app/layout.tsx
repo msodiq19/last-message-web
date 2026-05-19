@@ -4,31 +4,29 @@ import "./globals.css";
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "In Case: For the things people should hear",
+  title: "In Case | Emotional Continuity Infrastructure",
   description:
-    "Write a private message. Choose your check-in period. If you stop checking in, we'll deliver it securely to the people you choose.",
+    "A silent guardian for your most important words. Built on trust architecture and zero-knowledge encryption.",
   keywords: [
-    "encrypted message",
-    "digital legacy",
-    "dead man's switch",
-    "zero-knowledge encryption",
-    "legacy message",
-    "inactivity trigger",
     "emotional continuity",
-    "in case app",
+    "inactivity trigger",
+    "zero-knowledge encryption",
+    "trust architecture",
+    "encrypted message",
+    "privacy-first"
   ],
   openGraph: {
-    title: "In Case: For the things people should hear, even if you never get the chance to say them.",
+    title: "In Case | Emotional Continuity Infrastructure",
     description:
-      "Write a private message. Choose your check-in period. If you stop checking in, we'll deliver it securely to the people you choose.",
+      "Write a private message. Check in periodically. If life interrupts, we securely deliver it to the people you choose.",
     type: "website",
     url: baseUrl,
     siteName: "In Case",
   },
   twitter: {
     card: "summary_large_image",
-    title: "In Case: For the things people should hear",
-    description: "Write a message. Encrypt it. If you stop checking in, it delivers itself.",
+    title: "In Case | Emotional Continuity Infrastructure",
+    description: "Your passwords are backed up. Your photos are backed up. What about the things you meant to say?",
   },
   robots: { index: true, follow: true },
   alternates: { canonical: baseUrl },
