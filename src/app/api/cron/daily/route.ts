@@ -82,6 +82,12 @@ async function handleCron(request: NextRequest) {
           const successorEmail = (recipient as any).successors?.email;
           if (!successorEmail) continue;
 
+          // Mark recipient as delivered (read page checks for this status)
+          await supabase
+            .from("message_recipients")
+            .update({ status: "delivered" })
+            .eq("id", recipient.id);
+
           const readUrl = `${baseUrl}/read/${recipient.id}`;
           const { success } = await sendReleaseEmail(successorEmail, readUrl);
           if (!success) {

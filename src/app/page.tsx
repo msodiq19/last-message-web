@@ -100,9 +100,9 @@ export default function LandingPage() {
 
           <p
             className="ic-animate-up-d3"
-            style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 24, display: "flex", alignItems: "center", gap: 6 }}
+            style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 24, display: "flex", alignItems: "flex-start", gap: 6 }}
           >
-            <Lock size={12} strokeWidth={1.75} />
+            <Lock size={12} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
             End-to-end encrypted. Only delivered after your selected period of inactivity.
           </p>
         </div>

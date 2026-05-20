@@ -1311,7 +1311,14 @@ h6 {
    ============================================================ */
 
 @media (max-width: 768px) {
-  /* Nav: hide text links and login, keep logo + CTA only */
+  /* Nav: horizontal logo + CTA only, hide text links */
+  .ic-landing-nav {
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 0 !important;
+    padding: 14px 20px !important;
+  }
   .ic-landing-nav-links {
     display: none !important;
   }

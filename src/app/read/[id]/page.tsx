@@ -2,10 +2,11 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import ReadClient from "./ReadClient";
 
-export default async function ReadPage({ params, searchParams }: { params: { id: string }, searchParams: { successor: string } }) {
+export default async function ReadPage({ params }: { params: { id: string } }) {
   const supabase = await createClient();
 
   // Validate the recipient has access and the message is delivered
+  // URL contains message_recipients.id (sent by cron)
   const { data: recipient } = await supabase
     .from("message_recipients")
     .select(`
@@ -13,8 +14,7 @@ export default async function ReadPage({ params, searchParams }: { params: { id:
       messages ( encrypted_blob, sender_email ),
       successors ( id, private_key_enc )
     `)
-    .eq("message_id", params.id)
-    .eq("successor_id", searchParams.successor)
+    .eq("id", params.id)
     .single();
 
   const recipientData: any = recipient;
