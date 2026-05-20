@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://incase.dmsodiq.xyz";
 
 export const metadata: Metadata = {
   title: "In Case | Emotional Continuity Infrastructure",

@@ -50,7 +50,7 @@ async function handleCron(request: NextRequest) {
     return NextResponse.json({ processed: 0 });
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://incase.dmsodiq.xyz";
   const results = { reminders: 0, releases: 0, errors: 0 };
 
   for (const msg of messages) {
