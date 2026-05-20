@@ -99,7 +99,7 @@ export default async function DashboardPage() {
                         </div>
                     </div>
                 ) : (
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 20, alignItems: "start" }}>
+                    <div className="ic-dashboard-overview-grid" style={{ display: "grid", gap: 20, alignItems: "start" }}>
                         {/* ── Left column: Messages ── */}
                         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                             <div className="ic-card">

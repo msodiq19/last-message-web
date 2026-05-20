@@ -1021,3 +1021,360 @@ h6 {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* ════════════════════════════════════════
+   MOBILE RESPONSIVENESS
+   ════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Layout & Sidebar */
+  .ic-layout {
+    flex-direction: column;
+  }
+  
+  .ic-sidebar {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .ic-sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  .ic-main {
+    margin-left: 0 !important;
+    padding-top: 60px; /* space for mobile header */
+  }
+
+  .ic-page-content {
+    padding: 16px 20px 40px;
+  }
+
+  .ic-topbar {
+    padding: 16px 20px 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .ic-mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    padding: 0 20px;
+    background: var(--sidebar-bg);
+    border-bottom: 1px solid var(--sidebar-border);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 90;
+  }
+
+  .ic-mobile-menu-btn {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Landing Page */
+  .ic-landing-nav {
+    padding: 16px 20px;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .ic-landing-nav > div {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px !important;
+  }
+
+  .ic-landing-hero-image {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    opacity: 1;
+    order: -1;
+  }
+  
+  .ic-landing-hero {
+    flex-direction: column;
+  }
+  
+  .ic-landing-content {
+    padding: 40px 24px;
+    max-width: 100%;
+    text-align: center;
+  }
+  
+  .ic-landing-content h1 {
+    font-size: clamp(2rem, 8vw, 3rem) !important;
+  }
+
+  /* Split Layouts (e.g. Activity, Lists) */
+  .ic-split {
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  .ic-split-main, .ic-split-side {
+    width: 100%;
+  }
+
+  /* Forms & Cards */
+  .ic-auth-card {
+    padding: 24px;
+  }
+
+  .ic-auth-panel {
+    padding: 20px 16px;
+  }
+  
+  .ic-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .ic-message-item {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 12px;
+  }
+  
+  .ic-message-item-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (min-width: 769px) {
+  .ic-mobile-header {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .ic-landing-hero-image-wrapper {
+    position: relative !important;
+    width: 100% !important;
+    height: 300px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .ic-landing-footer-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .ic-landing-footer-grid > div:first-child,
+  .ic-landing-footer-grid > div:last-child {
+    grid-column: span 2;
+  }
+  .ic-landing-footer-bottom {
+    flex-direction: column;
+    gap: 12px;
+    justify-content: center !important;
+    text-align: center;
+  }
+}
+
+/* Dashboard Grid */
+.ic-dashboard-overview-grid {
+  grid-template-columns: 1fr 300px;
+}
+@media (max-width: 768px) {
+  .ic-dashboard-overview-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .ic-landing-features-grid,
+  .ic-landing-personas-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .ic-landing-steps-grid {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+  .ic-landing-step-arrow {
+    padding-top: 0 !important;
+  }
+  .ic-landing-step-arrow svg {
+    transform: rotate(90deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .ic-dashboard-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .ic-sidebar-close-btn {
+    display: none !important;
+  }
+}
+
+.ic-container {
+  padding-left: 64px !important;
+  padding-right: 64px !important;
+}
+
+@media (max-width: 768px) {
+  .ic-container {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+}
+
+/* ============================================================
+   LANDING PAGE — Desktop base styles (moved from inline JS)
+   ============================================================ */
+
+.ic-landing-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ic-landing-hero-image-wrapper {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+}
+
+.ic-landing-hero-fade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    var(--cream) 0%,
+    rgba(246, 241, 232, 0.6) 35%,
+    transparent 65%
+  );
+}
+
+.ic-landing-content {
+  position: relative;
+  z-index: 2;
+  padding: 80px 64px;
+  max-width: 640px;
+}
+
+.ic-section {
+  padding: 96px 64px;
+}
+
+.ic-section--compact {
+  padding: 24px 64px;
+}
+
+.ic-landing-footer {
+  padding: 52px 24px 36px;
+}
+
+/* Nav link groups — hidden on mobile, shown on desktop */
+.ic-landing-nav-links {
+  display: flex;
+}
+
+.ic-landing-nav-login {
+  display: inline;
+}
+
+/* CTA button row stacks on mobile */
+.ic-landing-cta-buttons {
+  display: flex;
+}
+
+/* ============================================================
+   LANDING PAGE — Mobile responsive overrides (≤ 768px)
+   ============================================================ */
+
+@media (max-width: 768px) {
+  /* Nav: hide text links and login, keep logo + CTA only */
+  .ic-landing-nav-links {
+    display: none !important;
+  }
+  .ic-landing-nav-login {
+    display: none !important;
+  }
+
+  /* Hero: collapse to natural height, hide background image */
+  .ic-landing-hero {
+    min-height: auto !important;
+    padding-top: 0 !important;
+  }
+  .ic-landing-hero-image-wrapper {
+    display: none !important;
+  }
+  .ic-landing-hero-fade {
+    display: none !important;
+  }
+  .ic-landing-content {
+    position: static !important;
+    padding: 48px 24px 56px !important;
+    max-width: 100% !important;
+    text-align: center !important;
+  }
+  .ic-landing-content p {
+    max-width: 100% !important;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* CTA buttons: stack vertically and stretch full-width */
+  .ic-landing-cta-buttons {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  .ic-landing-cta-buttons .ic-btn {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+  .ic-landing-cta-login {
+    text-align: center;
+  }
+
+  /* Sections: reduce padding dramatically on mobile */
+  .ic-section {
+    padding: 60px 24px !important;
+  }
+  .ic-section--compact {
+    padding: 20px 24px !important;
+  }
+
+  /* Footer */
+  .ic-landing-footer {
+    padding: 40px 24px 28px !important;
+  }
+
+  /* Feature and persona grids: 2 columns (better than 1 for cards) */
+  .ic-landing-features-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .ic-landing-personas-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}

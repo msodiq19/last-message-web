@@ -56,7 +56,7 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
                     </span>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+                <div className="ic-dashboard-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
                     <div className="ic-card" style={{ padding: 20 }}>
                         <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 4 }}>Check-in frequency</p>
                         <p style={{ fontSize: 15, fontWeight: 600 }}>Every {message.release_after} days</p>

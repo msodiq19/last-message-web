@@ -104,7 +104,7 @@ export default function SecurityPage() {
       </nav>
 
       {/* Hero */}
-      <div style={{ padding: "80px 64px 60px", maxWidth: 760, margin: "0 auto" }}>
+      <div className="ic-container" style={{ padding: "80px 64px 60px", maxWidth: 760, margin: "0 auto" }}>
         <p
           style={{
             fontSize: 12,
@@ -173,7 +173,7 @@ export default function SecurityPage() {
       </div>
 
       {/* Architecture layers */}
-      <div style={{ padding: "40px 64px 80px", maxWidth: 760, margin: "0 auto" }}>
+      <div className="ic-container" style={{ padding: "40px 64px 80px", maxWidth: 760, margin: "0 auto" }}>
         <h2
           style={{
             fontFamily: "'Cormorant Garamond', Georgia, serif",
@@ -241,7 +241,7 @@ export default function SecurityPage() {
       </div>
 
       {/* What we cannot do */}
-      <div style={{ padding: "0 64px 80px", maxWidth: 760, margin: "0 auto" }}>
+      <div className="ic-container" style={{ padding: "0 64px 80px", maxWidth: 760, margin: "0 auto" }}>
         <div
           style={{
             padding: "28px 32px",
@@ -279,7 +279,7 @@ export default function SecurityPage() {
       </div>
 
       {/* Audits & updates */}
-      <div style={{ padding: "0 64px 80px", maxWidth: 760, margin: "0 auto" }}>
+      <div className="ic-container" style={{ padding: "0 64px 80px", maxWidth: 760, margin: "0 auto" }}>
         <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
           <RefreshCw size={16} strokeWidth={1.5} color="var(--text-muted)" style={{ marginTop: 4, flexShrink: 0 }} />
           <div>
@@ -295,7 +295,7 @@ export default function SecurityPage() {
       </div>
 
       {/* Footer CTA */}
-      <div style={{ padding: "48px 64px", background: "var(--cream-warm)", borderTop: "1px solid var(--border)", textAlign: "center" }}>
+      <div className="ic-container" style={{ padding: "48px 64px", background: "var(--cream-warm)", borderTop: "1px solid var(--border)", textAlign: "center" }}>
         <p
           style={{
             fontFamily: "'Cormorant Garamond', Georgia, serif",

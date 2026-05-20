@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -11,6 +12,8 @@ import {
     Settings,
     LogOut,
     MessageCircleHeart,
+    Menu,
+    X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/lib/components/Logo";
@@ -26,6 +29,7 @@ const navItems = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     async function handleSignOut() {
         const supabase = createClient();
@@ -36,10 +40,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     return (
         <div className="ic-layout">
+            <div className="ic-mobile-header">
+                <Logo variant="full" size="sm" href="/dashboard" />
+                <button
+                    className="ic-mobile-menu-btn"
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                >
+                    {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
+            </div>
+
             {/* Sidebar */}
-            <aside className="ic-sidebar">
-                <div className="ic-sidebar-logo">
-                    <Logo variant="full" size="sm" href="/dashboard" />
+            <aside className={`ic-sidebar ${isMobileMenuOpen ? "is-open" : ""}`}>
+                <div className="ic-sidebar-logo" style={{ justifyContent: "space-between" }}>
+                    <div onClick={() => setIsMobileMenuOpen(false)}>
+                        <Logo variant="full" size="sm" href="/dashboard" />
+                    </div>
+                    <button
+                        className="ic-sidebar-close-btn"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-primary)" }}
+                    >
+                        <X size={20} />
+                    </button>
                 </div>
 
                 <nav className="ic-nav-section">
@@ -49,6 +72,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             <Link
                                 key={item.href}
                                 href={item.href}
+                                onClick={() => setIsMobileMenuOpen(false)}
                                 className={`ic-nav-item ${isActive ? "ic-nav-item--active" : ""}`}
                             >
                                 {item.icon}
@@ -61,6 +85,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div style={{ borderTop: "1px solid var(--sidebar-border)", paddingTop: 12, display: "flex", flexDirection: "column", gap: 2 }}>
                     <Link
                         href="/settings"
+                        onClick={() => setIsMobileMenuOpen(false)}
                         className={`ic-nav-item ${pathname.startsWith("/settings") ? "ic-nav-item--active" : ""}`}
                     >
                         <Settings size={15} strokeWidth={1.5} />

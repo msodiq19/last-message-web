@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Last Message — Encrypted Dead Man's Switch";
+export const alt = "in case — For the things people should hear, even if you never get the chance to say them.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -10,83 +10,153 @@ export default async function Image() {
     (
       <div
         style={{
-          background: "#0a0a0a",
+          background: "#F6F1E8",
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "60px",
+          flexDirection: "row",
         }}
       >
-        {/* Lock icon */}
+        {/* Left — text content */}
         <div
           style={{
+            width: "620px",
+            height: "100%",
             display: "flex",
-            marginBottom: "32px",
-            fontSize: "64px",
+            flexDirection: "column",
+            justifyContent: "center",
+            padding: "72px 64px",
+            background: "#F6F1E8",
           }}
         >
-          <svg
-            width="64"
-            height="64"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#a0a0a0"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+          {/* Logo mark */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              marginBottom: "40px",
+            }}
           >
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-          </svg>
+            <div
+              style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                background: "#163C34",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "16px",
+              }}
+            >
+              ✉
+            </div>
+            <span style={{ fontSize: "18px", fontWeight: 600, color: "#163C34", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+              in case
+            </span>
+          </div>
+
+          {/* Headline */}
+          <div
+            style={{
+              fontSize: "52px",
+              fontWeight: 600,
+              color: "#1F1F1C",
+              lineHeight: 1.1,
+              letterSpacing: "-0.03em",
+              marginBottom: "24px",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <span>For the things</span>
+            <span>people should hear.</span>
+          </div>
+
+          {/* Subtext */}
+          <div
+            style={{
+              fontSize: "20px",
+              color: "#4A4843",
+              lineHeight: 1.6,
+              marginBottom: "40px",
+              display: "flex",
+            }}
+          >
+            Zero-knowledge encrypted messages,<br/>delivered only when it truly matters.
+          </div>
+
+          {/* Badges */}
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            {["End-to-end encrypted", "Zero-knowledge", "Privacy-first"].map((label) => (
+              <div
+                key={label}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "6px 14px",
+                  borderRadius: "100px",
+                  border: "1.5px solid rgba(22,60,52,0.2)",
+                  fontSize: "13px",
+                  color: "#163C34",
+                  fontWeight: 500,
+                  background: "rgba(22,60,52,0.06)",
+                }}
+              >
+                {label}
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Title */}
+        {/* Right — green panel */}
         <div
           style={{
+            flex: 1,
+            background: "#163C34",
             display: "flex",
-            fontSize: "64px",
-            fontWeight: 700,
-            color: "#ffffff",
-            textAlign: "center",
-            lineHeight: 1.1,
-            marginBottom: "24px",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "60px 48px",
           }}
         >
-          Last Message
-        </div>
+          {/* Envelope icon */}
+          <div
+            style={{
+              width: "120px",
+              height: "120px",
+              borderRadius: "50%",
+              background: "rgba(246,241,232,0.12)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: "36px",
+              fontSize: "56px",
+            }}
+          >
+            ✉
+          </div>
 
-        {/* Tagline */}
-        <div
-          style={{
-            display: "flex",
-            fontSize: "28px",
-            color: "#a0a0a0",
-            textAlign: "center",
-            lineHeight: 1.4,
-            maxWidth: "800px",
-          }}
-        >
-          A dead man's switch for the words that matter
-        </div>
+          <div
+            style={{
+              fontSize: "22px",
+              fontStyle: "italic",
+              color: "#F6F1E8",
+              textAlign: "center",
+              lineHeight: 1.65,
+              maxWidth: "340px",
+              display: "flex",
+            }}
+          >
+            &ldquo;A quiet kind of security. Knowing your words will reach the people you love.&rdquo;
+          </div>
 
-        {/* Features line */}
-        <div
-          style={{
-            display: "flex",
-            gap: "32px",
-            marginTop: "48px",
-            fontSize: "18px",
-            color: "#666666",
-          }}
-        >
-          <span>Zero-Knowledge Encryption</span>
-          <span style={{ color: "#333" }}>•</span>
-          <span>No Accounts</span>
-          <span style={{ color: "#333" }}>•</span>
-          <span>Open Source</span>
+          <div style={{ marginTop: "20px", fontSize: "14px", color: "rgba(246,241,232,0.5)", display: "flex" }}>
+            incase.dmsodiq.xyz
+          </div>
         </div>
       </div>
     ),

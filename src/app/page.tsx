@@ -27,7 +27,7 @@ export default function LandingPage() {
       {/* ── Nav ── */}
       <nav className="ic-landing-nav">
         <Logo href="/" size="sm" />
-        <div style={{ display: "flex", alignItems: "center", gap: 28, fontSize: 14, color: "var(--text-secondary)" }}>
+        <div className="ic-landing-nav-links" style={{ display: "flex", alignItems: "center", gap: 28, fontSize: 14, color: "var(--text-secondary)" }}>
           {([
             ["How it works", "#how-it-works"],
             ["Security", "/security"],
@@ -36,25 +36,26 @@ export default function LandingPage() {
           ))}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <Link href="/login" style={{ fontSize: 14, color: "var(--text-secondary)", textDecoration: "none", fontWeight: 500 }}>Log in</Link>
+          <Link href="/login" className="ic-landing-nav-login" style={{ fontSize: 14, color: "var(--text-secondary)", textDecoration: "none", fontWeight: 500 }}>Log in</Link>
           <Link href="/sign-up" className="ic-btn ic-btn-primary ic-btn-sm">Get started</Link>
         </div>
       </nav>
 
       {/* ── Hero ── */}
-      <div style={{ position: "relative", overflow: "hidden", minHeight: "90vh", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-        <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: "50%" }}>
+      <div className="ic-landing-hero">
+        <div className="ic-landing-hero-image-wrapper">
           <Image
             src="/hero-envelope.png"
             alt="A sealed envelope resting on a warm wooden desk"
             fill
+            className="ic-landing-hero-image"
             style={{ objectFit: "cover", objectPosition: "center" }}
             priority
           />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, var(--cream) 0%, rgba(246,241,232,0.6) 35%, transparent 65%)" }} />
+          <div className="ic-landing-hero-fade" />
         </div>
 
-        <div style={{ position: "relative", zIndex: 2, padding: "80px 64px", maxWidth: 640 }}>
+        <div className="ic-landing-content">
           <div className="ic-animate-up" style={{ marginBottom: 28 }}>
             <TrustRow />
           </div>
@@ -108,7 +109,7 @@ export default function LandingPage() {
       </div>
 
       {/* ── How it works ── */}
-      <section id="how-it-works" style={{ padding: "96px 64px", borderTop: "1px solid var(--border)" }}>
+      <section id="how-it-works" className="ic-section" style={{ borderTop: "1px solid var(--border)" }}>
         <div style={{ maxWidth: 860, margin: "0 auto" }}>
           <p style={{ textAlign: "center", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--text-muted)", marginBottom: 12 }}>
             How it works
@@ -120,7 +121,7 @@ export default function LandingPage() {
             Peace of mind in three simple steps.
           </h2>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr auto 1fr", gap: 0, alignItems: "start" }}>
+          <div className="ic-landing-steps-grid" style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr auto 1fr", gap: 0, alignItems: "start" }}>
             {[
               {
                 icon: <PenLine size={22} strokeWidth={1.25} color="var(--green-deep)" />,
@@ -141,7 +142,7 @@ export default function LandingPage() {
               },
             ].map((item, i) =>
               "divider" in item ? (
-                <div key={i} style={{ display: "flex", justifyContent: "center", paddingTop: 26, color: "var(--border-strong)" }}>
+                <div key={i} className="ic-landing-step-arrow" style={{ display: "flex", justifyContent: "center", paddingTop: 26, color: "var(--border-strong)" }}>
                   <ArrowRight size={16} strokeWidth={1.5} />
                 </div>
               ) : (
@@ -159,12 +160,12 @@ export default function LandingPage() {
       </section>
 
       {/* ── Features ── */}
-      <section style={{ padding: "80px 64px", background: "var(--cream-warm)", borderTop: "1px solid var(--border)" }}>
+      <section className="ic-section" style={{ background: "var(--cream-warm)", borderTop: "1px solid var(--border)" }}>
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
           <h2 className="ic-display" style={{ textAlign: "center", fontSize: "clamp(1.4rem, 2.5vw, 1.9rem)", fontWeight: 500, marginBottom: 52, letterSpacing: "-0.02em" }}>
             Built for life&apos;s uncertainties
           </h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 24 }}>
+          <div className="ic-landing-features-grid" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 24 }}>
             {[
               { icon: <Lock size={18} strokeWidth={1.5} color="var(--green-deep)" />, title: "Private by design", desc: "End-to-end encrypted. We can't read your messages." },
               { icon: <SlidersHorizontal size={18} strokeWidth={1.5} color="var(--green-deep)" />, title: "You stay in control", desc: "Adjust, pause, or cancel anytime. You decide everything." },
@@ -185,7 +186,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Security trust band ── */}
-      <section style={{ padding: "24px 64px", background: "rgba(22,60,52,0.03)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}>
+      <section className="ic-section ic-section--compact" style={{ background: "rgba(22,60,52,0.03)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: 20, flexWrap: "wrap" }}>
           <TrustBadge variant="lock" size="md" />
           <TrustBadge variant="zk" size="md" />
@@ -197,7 +198,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Pull quote ── */}
-      <section style={{ padding: "96px 64px", background: "var(--green-deep)", textAlign: "center" }}>
+      <section className="ic-section" style={{ background: "var(--green-deep)", textAlign: "center" }}>
         <blockquote
           className="ic-display"
           style={{ fontSize: "clamp(1.3rem, 2.5vw, 2rem)", fontStyle: "italic", maxWidth: 560, margin: "0 auto", lineHeight: 1.6, fontWeight: 400, color: "var(--cream)" }}
@@ -210,13 +211,13 @@ export default function LandingPage() {
       </section>
 
       {/* ── Why people choose In Case ── */}
-      <section style={{ padding: "96px 64px", borderTop: "1px solid var(--border)" }}>
+      <section className="ic-section" style={{ borderTop: "1px solid var(--border)" }}>
         <div style={{ maxWidth: 1000, margin: "0 auto" }}>
           <h2 className="ic-display" style={{ textAlign: "center", fontSize: "clamp(1.4rem, 2.5vw, 1.9rem)", fontWeight: 500, marginBottom: 8, letterSpacing: "-0.02em" }}>
             Why people choose In Case
           </h2>
           <p style={{ textAlign: "center", fontSize: 14, color: "var(--text-muted)", marginBottom: 52 }}>Different lives. Different stories. Same peace of mind.</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16 }}>
+          <div className="ic-landing-personas-grid" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16 }}>
             {[
               { icon: <Plane size={16} strokeWidth={1.5} color="var(--green-deep)" />, title: "For travelers", desc: "Share what matters while you're away." },
               { icon: <Users size={16} strokeWidth={1.5} color="var(--green-deep)" />, title: "For parents", desc: "A message of love, always within reach." },
@@ -237,7 +238,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section style={{ padding: "80px 64px", background: "var(--cream-warm)", borderTop: "1px solid var(--border)" }}>
+      <section className="ic-section" style={{ background: "var(--cream-warm)", borderTop: "1px solid var(--border)" }}>
         <div style={{ maxWidth: 680, margin: "0 auto", textAlign: "center" }}>
           <h2 className="ic-display" style={{ fontSize: "clamp(1.3rem, 2.5vw, 1.7rem)", fontWeight: 500, marginBottom: 12, letterSpacing: "-0.02em" }}>
             Protect what matters, starting today.
@@ -245,16 +246,16 @@ export default function LandingPage() {
           <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 28 }}>
             Create your first message in minutes. No credit card required.
           </p>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-            <Link href="/sign-up" className="ic-btn ic-btn-primary">Get started — it's free</Link>
-            <Link href="/login" style={{ fontSize: 14, color: "var(--text-muted)", textDecoration: "none" }}>Already have an account?</Link>
+          <div className="ic-landing-cta-buttons" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+            <Link href="/sign-up" className="ic-btn ic-btn-primary">Get started — it&apos;s free</Link>
+            <Link href="/login" className="ic-landing-cta-login" style={{ fontSize: 14, color: "var(--text-muted)", textDecoration: "none" }}>Already have an account?</Link>
           </div>
         </div>
       </section>
 
       {/* ── Footer ── */}
-      <footer style={{ padding: "52px 64px 36px", borderTop: "1px solid var(--border)", background: "var(--cream)" }}>
-        <div style={{ maxWidth: 1000, margin: "0 auto", display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", gap: 24, marginBottom: 40 }}>
+      <footer className="ic-landing-footer" style={{ borderTop: "1px solid var(--border)", background: "var(--cream)" }}>
+        <div className="ic-landing-footer-grid" style={{ maxWidth: 1000, margin: "0 auto", display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", gap: 24, marginBottom: 40 }}>
           <div>
             <Logo href="/" size="sm" />
             <p style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.7, marginTop: 14 }}>
@@ -283,7 +284,7 @@ export default function LandingPage() {
             </p>
           </div>
         </div>
-        <div style={{ borderTop: "1px solid var(--border)", paddingTop: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div className="ic-landing-footer-bottom" style={{ borderTop: "1px solid var(--border)", paddingTop: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <p style={{ fontSize: 12, color: "var(--text-muted)" }}>© 2026 In Case, Inc. All rights reserved.</p>
           <TrustBadge variant="lock" size="sm" />
         </div>
