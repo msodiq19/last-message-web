@@ -21,6 +21,12 @@ The system only releases your encrypted message to your chosen recipient if you 
 3. **The Lockbox:** We store an encrypted blob that can only be unlocked by the recipient's secure key.
 4. **Triggered Continuity:** You check in periodically. If you miss your check-in, the system faithfully delivers the encrypted package to your recipient.
 
+## Open Source & Contribution Policy
+This project is open-source for **transparency and security auditing**, not for community feature development. Because we deal in the business of emotional continuity and zero-knowledge architectures, our specification is strictly locked.
+
+- To read our philosophy on contributions, see [CONTRIBUTING.md](CONTRIBUTING.md).
+- To report a security vulnerability during an audit, read [SECURITY.md](SECURITY.md).
+
 ## Tech Stack
 For developers and builders, this project was architected with:
 - **Framework:** Next.js 15 (App Router)
