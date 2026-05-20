@@ -263,7 +263,7 @@ export default function LandingPage() {
           </div>
           {[
             { heading: "Product", links: [["How it works", "#how-it-works"], ["Security", "/security"]] },
-            { heading: "Company", links: [["Contact", "mailto:hello@incase.so"]] },
+            { heading: "Company", links: [["Contact", "mailto:sodiqamuhammed@gmail.com"]] },
             { heading: "Legal", links: [["Privacy", "/privacy"], ["Terms of Service", "/terms"]] },
           ].map(({ heading, links }) => (
             <div key={heading}>

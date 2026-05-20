@@ -288,7 +288,7 @@ export default function SecurityPage() {
             </p>
             <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75 }}>
               This architecture is reviewed and updated regularly. We intend to publish an independent third-party security audit before general availability. If you are a security researcher and have found a concern, please contact{" "}
-              <a href="mailto:security@incase.app" style={{ color: "var(--green-deep)", textDecoration: "none" }}>security@incase.app</a>.
+              <a href="mailto:sodiqamuhammed@gmail.com" style={{ color: "var(--green-deep)", textDecoration: "none" }}>sodiqamuhammed@gmail.com</a>.
             </p>
           </div>
         </div>

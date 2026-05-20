@@ -75,7 +75,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         Log out
                     </button>
                     <a
-                        href="mailto:hello@incase.so?subject=In Case Feedback"
+                        href="https://tally.so/r/GxqMWQ"
                         target="_blank"
                         rel="noreferrer"
                         className="ic-nav-item"

@@ -71,7 +71,7 @@ export async function createLockedMessage(payload: {
 
         // Send handshake email to recipient
         const senderName = user.user_metadata?.full_name || user.email!.split("@")[0];
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://incase.so";
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://incase.dmsodiq.xyz";
         await sendHandshakeEmail(
             rec.email,
             rec.name,

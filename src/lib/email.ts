@@ -8,7 +8,7 @@ function getResend(): Resend {
   return _resend;
 }
 
-const FROM_EMAIL = process.env.FROM_EMAIL || "In Case <onboarding@resend.dev>";
+const FROM_EMAIL = process.env.FROM_EMAIL || "In Case <hello@incase.dmsodiq.xyz>";
 
 /**
  * Send a check-in reminder to the message creator.
@@ -27,7 +27,7 @@ export async function sendReminderEmail(
 You have ${daysLeft} day${daysLeft === 1 ? "" : "s"} before your message is automatically delivered to your recipient${daysLeft === 1 ? ". Today is the last day" : ""}.
 
 Log in to check in:
-https://incase.so/check-in
+https://incase.dmsodiq.xyz/check-in
 
 If you meant for this to happen, you don't need to do anything.
 
