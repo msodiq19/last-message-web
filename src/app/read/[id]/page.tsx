@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import ReadClient from "./ReadClient";
 
-export default async function ReadPage({ params }: { params: { id: string } }) {
+export default async function ReadPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = await createClient();
 
   // Validate the recipient has access and the message is delivered
@@ -14,7 +15,7 @@ export default async function ReadPage({ params }: { params: { id: string } }) {
       messages ( encrypted_blob, sender_email ),
       successors ( id, private_key_enc )
     `)
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   const recipientData: any = recipient;
