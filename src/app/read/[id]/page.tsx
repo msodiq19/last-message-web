@@ -36,7 +36,7 @@ export default async function ReadPage({ params }: { params: Promise<{ id: strin
 
   return (
     <ReadClient
-      messageId={params.id}
+      messageId={id}
       senderName={senderEmail.split("@")[0]}
       encryptedBlob={recipientData.messages?.encrypted_blob}
       encryptedSymmetricKey={recipientData.encrypted_key}
