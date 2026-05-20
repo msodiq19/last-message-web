@@ -40,7 +40,7 @@ export default function ReadClient({
             // Mark as read
             fetch(`/api/messages/${messageId}/read`, { method: "POST" }).catch(() => {});
         } catch (err: any) {
-            setError("Incorrect Access Password or corrupted payload. We cannot recover your password.");
+            setError("Incorrect password. Please check your Access Password and try again.");
         } finally {
             setLoading(false);
         }

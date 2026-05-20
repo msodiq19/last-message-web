@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Lock } from "lucide-react";
 import { TrustBadge } from "@/lib/components/TrustBadge";
+import KeyTransferClient from "./KeyTransferClient";
 
 export default async function MessageDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -14,7 +15,7 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
         .select(`
       *,
       message_recipients (
-        id, status, handshake_token,
+        id, status, handshake_token, encrypted_key,
         successors ( name, email, public_key )
       )
     `)
@@ -86,18 +87,31 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
                     {message.message_recipients?.length === 0 ? (
                         <p style={{ padding: 16, fontSize: 13, color: "var(--text-muted)" }}>No recipients added.</p>
                     ) : message.message_recipients?.map((mr: any) => (
-                        <div key={mr.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderBottom: "1px solid var(--border)" }}>
-                            <div className="ic-message-avatar">{mr.successors.name.slice(0, 2).toUpperCase()}</div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                                <p style={{ fontWeight: 600, fontSize: 14 }}>{mr.successors.name}</p>
-                                <p style={{ fontSize: 12, color: "var(--text-muted)" }}>{mr.successors.email}</p>
+                        <div key={mr.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px" }}>
+                                <div className="ic-message-avatar">{mr.successors.name.slice(0, 2).toUpperCase()}</div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <p style={{ fontWeight: 600, fontSize: 14 }}>{mr.successors.name}</p>
+                                    <p style={{ fontSize: 12, color: "var(--text-muted)" }}>{mr.successors.email}</p>
+                                </div>
+                                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                                    {mr.status === 'pending' && <span className="ic-badge ic-badge-paused">Handshake pending</span>}
+                                    {mr.status === 'handshake_complete' && <span className="ic-badge ic-badge-paused">Setup needed</span>}
+                                    {mr.status === 'delivered' && <span className="ic-badge ic-badge-released">Delivered</span>}
+                                    {mr.status === 'read' && <span className="ic-badge ic-badge-active">Read</span>}
+                                </div>
                             </div>
-                            <div style={{ textAlign: "right" }}>
-                                {mr.status === 'pending' && <span className="ic-badge ic-badge-paused">Handshake pending</span>}
-                                {mr.status === 'handshake_complete' && <span className="ic-badge ic-badge-active">Ready</span>}
-                                {mr.status === 'delivered' && <span className="ic-badge ic-badge-released">Delivered</span>}
-                                {mr.status === 'read' && <span className="ic-badge ic-badge-active">Read</span>}
-                            </div>
+                            {mr.status === 'handshake_complete' && mr.successors?.public_key && message.temporary_private_key_enc && (
+                                <div style={{ padding: "0 16px 14px" }}>
+                                    <KeyTransferClient
+                                        messageRecipientId={mr.id}
+                                        temporaryPrivateKeyEncrypted={message.temporary_private_key_enc}
+                                        encryptedSymmetricKey={mr.encrypted_key}
+                                        successorPublicKey={mr.successors.public_key}
+                                        recipientName={mr.successors.name}
+                                    />
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
