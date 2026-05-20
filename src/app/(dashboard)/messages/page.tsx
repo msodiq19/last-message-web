@@ -78,9 +78,15 @@ export default async function MessagesPage() {
                                         <p style={{ fontSize: 12, color: "var(--text-muted)" }}>
                                             Check-in every {msg.release_after} days
                                         </p>
-                                        <p style={{ fontSize: 12, color: days <= 3 ? "var(--error)" : "var(--text-muted)", marginTop: 1 }}>
-                                            Next check-in: {formatDate(nextCheckin.toISOString())} · {days} days
-                                        </p>
+                                        {msg.status === "active" ? (
+                                            <p style={{ fontSize: 12, color: days <= 3 ? "var(--error)" : "var(--text-muted)", marginTop: 1 }}>
+                                                Next check-in: {formatDate(nextCheckin.toISOString())} · {days} days
+                                            </p>
+                                        ) : (
+                                            <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 1 }}>
+                                                Released{msg.released_at ? ` on ${formatDate(msg.released_at)}` : ""}
+                                            </p>
+                                        )}
                                     </div>
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
                                 </Link>

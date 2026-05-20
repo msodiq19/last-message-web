@@ -134,22 +134,30 @@ export default async function DashboardPage() {
                                                 <p style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 6 }}>
                                                     Check-in every {msg.release_after} days
                                                 </p>
-                                                {/* Progress bar */}
-                                                <div style={{ height: 3, borderRadius: 2, background: "var(--border)", overflow: "hidden", marginBottom: 5 }}>
-                                                    <div style={{
-                                                        height: "100%",
-                                                        width: `${Math.min(progressPct, 100)}%`,
-                                                        background: isUrgent ? "var(--error)" : "var(--green-deep)",
-                                                        borderRadius: 2,
-                                                        transition: "width 0.4s ease",
-                                                    }} />
-                                                </div>
-                                                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-muted)" }}>
-                                                    <span>Last check-in: {formatRelative(lastCheckin.toISOString())}</span>
-                                                    <span style={{ color: isUrgent ? "var(--error)" : "var(--text-muted)" }}>
-                                                        Next: {formatDate(nextCheckin.toISOString())}
-                                                    </span>
-                                                </div>
+                                                {msg.status === "active" ? (
+                                                    <>
+                                                        {/* Progress bar */}
+                                                        <div style={{ height: 3, borderRadius: 2, background: "var(--border)", overflow: "hidden", marginBottom: 5 }}>
+                                                            <div style={{
+                                                                height: "100%",
+                                                                width: `${Math.min(progressPct, 100)}%`,
+                                                                background: isUrgent ? "var(--error)" : "var(--green-deep)",
+                                                                borderRadius: 2,
+                                                                transition: "width 0.4s ease",
+                                                            }} />
+                                                        </div>
+                                                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-muted)" }}>
+                                                            <span>Last check-in: {formatRelative(lastCheckin.toISOString())}</span>
+                                                            <span style={{ color: isUrgent ? "var(--error)" : "var(--text-muted)" }}>
+                                                                Next: {formatDate(nextCheckin.toISOString())}
+                                                            </span>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <p style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                                                        Released{msg.released_at ? ` on ${formatDate(msg.released_at)}` : ""} · delivered to recipient(s)
+                                                    </p>
+                                                )}
                                             </div>
                                         </Link>
                                     );

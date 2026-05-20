@@ -64,11 +64,21 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
                         <p style={{ fontSize: 14 }}>{new Date(message.last_checkin).toLocaleDateString()}</p>
                     </div>
 
-                    <div className="ic-card" style={{ padding: 20, background: daysLeft <= 3 ? "var(--error-soft)" : "var(--surface)" }}>
-                        <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 4 }}>Next check-in due</p>
-                        <p style={{ fontSize: 22, fontWeight: 700, color: daysLeft <= 3 ? "var(--error)" : "var(--text-primary)" }}>{daysLeft} days</p>
-                        <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6 }}>Due {nextCheckin.toLocaleDateString()}</p>
-                    </div>
+                    {message.status === "released" ? (
+                        <div className="ic-card" style={{ padding: 20, background: "var(--cream-warm)" }}>
+                            <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 4 }}>Released on</p>
+                            <p style={{ fontSize: 15, fontWeight: 600 }}>{message.released_at ? new Date(message.released_at).toLocaleDateString() : "—"}</p>
+                            <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 12, lineHeight: 1.5 }}>
+                                Your message has been delivered to your recipient(s). No further check-ins required.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="ic-card" style={{ padding: 20, background: daysLeft <= 3 ? "var(--error-soft)" : "var(--surface)" }}>
+                            <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 4 }}>Next check-in due</p>
+                            <p style={{ fontSize: 22, fontWeight: 700, color: daysLeft <= 3 ? "var(--error)" : "var(--text-primary)" }}>{daysLeft} days</p>
+                            <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6 }}>Due {nextCheckin.toLocaleDateString()}</p>
+                        </div>
+                    )}
                 </div>
 
                 <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Recipients</h3>
